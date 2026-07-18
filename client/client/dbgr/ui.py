@@ -244,7 +244,7 @@ class Interaction(object):
                     exc = self.handle_exc()
                     type_, value = sys.exc_info()[:2]
                     link = (
-                        '<a href="https://github.com/CHANGEME/dbgr/issues/new?'
+                        '<a href="https://github.com/arkhan/dbr/issues/new?'
                         'title=%s&body=%s&labels=defect" class="nogood">'
                         'Please click here to report it on Github</a>'
                     ) % (
