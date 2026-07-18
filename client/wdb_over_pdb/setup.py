@@ -11,7 +11,7 @@ setup(
     author="Florian Mounier @ kozea",
     author_email="florian.mounier@kozea.fr",
     py_modules=['pdb'],
-    url="https://github.com/arkhan/dbr",
+    url="https://github.com/arkhan/dbgr",
     license='GPLv3',
     description='Hack to force use of dbgr over pdb '
     '(Useful for thing like py.test --pdb)',

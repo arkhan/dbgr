@@ -11,7 +11,7 @@ setup(
     version='0.2.1',
     author="Florian Mounier @ kozea",
     author_email="florian.mounier@kozea.fr",
-    url="https://github.com/arkhan/dbr",
+    url="https://github.com/arkhan/dbgr",
     license='GPLv3',
     packages=[],
     install_requires=['dbgr >= 3.3.0'],

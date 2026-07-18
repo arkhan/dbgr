@@ -1,7 +1,7 @@
 # Flask DBGR Hook
 ## Replace flask werkzeug debugger with dbgr
 
-[![](https://raw.github.com/arkhan/dbr/master/flask_wdb_hook/demo.gif)](https://raw.github.com/arkhan/dbr/master/flask_wdb_hook/demo.gif)
+[![](https://raw.github.com/arkhan/dbgr/master/flask_wdb_hook/demo.gif)](https://raw.github.com/arkhan/dbgr/master/flask_wdb_hook/demo.gif)
 
 
 ### Installation
