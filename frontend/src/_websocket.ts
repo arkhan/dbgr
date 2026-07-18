@@ -1,13 +1,13 @@
 import { Log } from "./_base";
 
 class Websocket extends Log {
-    public wdb: any;
+    public dbgr: any;
     public url: string;
     public ws: WebSocket;
 
-    constructor(wdb: any, uuid: string) {
+    constructor(dbgr: any, uuid: string) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
         // Open a websocket in case of request break
         const proto = document.location.protocol === "https:" ? "wss:" : "ws:";
         this.url = `${proto}//${document.location.host}/websocket/${uuid}`;
@@ -21,7 +21,7 @@ class Websocket extends Log {
 
     close(m: any) {
         this.log("Closed", m);
-        return this.wdb.die();
+        return this.dbgr.die();
     }
 
     error(m: any) {
@@ -31,7 +31,7 @@ class Websocket extends Log {
     open(m: any) {
         // We are connected, ie: in request break
         this.log("Open", m);
-        return this.wdb.opening();
+        return this.dbgr.opening();
     }
 
     message(m: any) {
@@ -47,8 +47,8 @@ class Websocket extends Log {
         }
         this.dbg(this.time(), "<-", message);
         cmd = cmd.toLowerCase();
-        if (cmd in this.wdb) {
-            return this.wdb[cmd.toLowerCase()](data);
+        if (cmd in this.dbgr) {
+            return this.dbgr[cmd.toLowerCase()](data);
         } else {
             return this.fail("Unknown command", cmd);
         }

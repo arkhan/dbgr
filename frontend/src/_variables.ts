@@ -1,5 +1,5 @@
 import { Log } from "./_base";
-import { Wdb } from "./wdb";
+import { Dbgr } from "./dbgr";
 import "./scss/_variables.scss";
 
 interface VarEntry {
@@ -23,14 +23,14 @@ interface VarNode extends VarEntry {
 // watch expressions in a separate section, lazy expand for containers and
 // objects, inline edit on double-click.
 class Variables extends Log {
-    public wdb: Wdb;
+    public dbgr: Dbgr;
     public $panel: JQuery;
     public $body: JQuery;
     private nodes: Record<string, VarNode>;
 
-    constructor(wdb: Wdb) {
+    constructor(dbgr: Dbgr) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
         this.nodes = {};
         this.$panel = $(".variables-panel");
         this.$body = this.$panel.find(".variables-body");
@@ -108,7 +108,7 @@ class Variables extends Log {
             target.children = children;
         }
         this.render();
-        this.wdb.chilling();
+        this.dbgr.chilling();
     }
 
     onToggle(e: JQuery.ClickEvent) {
@@ -119,8 +119,8 @@ class Variables extends Log {
         node.expanded = !node.expanded;
         if (node.expanded && !node.children) {
             node.loading = true;
-            this.wdb.ws.send("Expand", { path });
-            this.wdb.working();
+            this.dbgr.ws.send("Expand", { path });
+            this.dbgr.working();
         }
         this.render();
     }
@@ -129,7 +129,7 @@ class Variables extends Log {
         e.stopPropagation();
         const $row = $(e.currentTarget).closest(".var-row");
         const path = $row.attr("data-path") as string;
-        this.wdb.unwatch(path);
+        this.dbgr.unwatch(path);
         return false;
     }
 
@@ -154,8 +154,8 @@ class Variables extends Log {
 
         const commit = () => {
             const value = String($input.val());
-            this.wdb.ws.send("SetVar", { expr: path, value });
-            this.wdb.working();
+            this.dbgr.ws.send("SetVar", { expr: path, value });
+            this.dbgr.working();
         };
         $input.on("keydown", (ev) => {
             if (ev.key === "Enter") {
@@ -210,8 +210,8 @@ class Variables extends Log {
             if (ev.key !== "Enter") return;
             const expr = String($input.val()).trim();
             if (!expr) return;
-            this.wdb.ws.send("Watch", expr);
-            this.wdb.working();
+            this.dbgr.ws.send("Watch", expr);
+            this.dbgr.working();
             $input.val("");
         });
         return $row;
@@ -244,7 +244,7 @@ class Variables extends Log {
         if (node.expandable) {
             $value.text(node.val);
         } else {
-            this.wdb.code($value, node.val, [], true);
+            this.dbgr.code($value, node.val, [], true);
         }
         $row.append($value);
 

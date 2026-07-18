@@ -1,135 +1,120 @@
-# wdb[aiohttp] - Web Debugger
-
-## Statistics
-
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/shepilov-vladislav/wdb_server_aiohttp/Pytest?logo=github&style=flat-square)
-![Codecov](https://img.shields.io/codecov/c/github/shepilov-vladislav/wdb_server_aiohttp?logo=codecov&style=flat-square)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/shepilov-vladislav/wdb_server_aiohttp?logo=code%20climate&style=flat-square)
-![Dependabot](https://img.shields.io/badge/dependabot-Active-brightgreen?logo=dependabot&style=flat-square)
-![PyPI - License](https://img.shields.io/pypi/l/wdb.server.aiohttp?style=flat-square)
-[![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg?style=flat-square)](https://github.com/wemake-services/wemake-python-styleguide)
-
-## GitHub
-
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/shepilov-vladislav/wdb_server_aiohttp?label=latest%20stable&sort=semver&style=flat-square)](https://github.com/shepilov-vladislav/wdb_server_aiohttp/releases)
-[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/shepilov-vladislav/wdb_server_aiohttp?label=latest%20unstable&style=flat-square)](https://github.com/shepilov-vladislav/wdb_server_aiohttp/releases)
-[![GitHub last commit](https://img.shields.io/github/last-commit/shepilov-vladislav/wdb_server_aiohttp?style=flat-square)](https://github.com/shepilov-vladislav/wdb_server_aiohttp/commits/master)
-
-
-## Docker Hub
-
-![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/shepilovvladislav/wdb?style=flat-square)
-![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/shepilovvladislav/wdb?style=flat-square)
-![Docker Pulls](https://img.shields.io/docker/pulls/shepilovvladislav/wdb?style=flat-square)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/shepilovvladislav/wdb?sort=date&style=flat-square)
-![Docker Image Version (latest semver)](https://img.shields.io/docker/v/shepilovvladislav/wdb?sort=semver&style=flat-square)
+# dbgr - Web Debugger
 
 ## PyPI
 
-[![Python Versions](https://img.shields.io/pypi/pyversions/wdb.server.aiohttp?logo=python&style=flat-square)](https://pypi.org/project/wdb.server.aiohttp)
-![PyPI - Format](https://img.shields.io/pypi/format/wdb.server.aiohttp?style=flat-square)
-![PyPI - Status](https://img.shields.io/pypi/status/wdb.server.aiohttp?style=flat-square)
-[![PyPI](https://img.shields.io/pypi/v/wdb.server.aiohttp?style=flat-square)](https://pypi.org/project/wdb.server.aiohttp)
-![PyPI - Downloads](https://img.shields.io/pypi/dd/wdb.server.aiohttp?style=flat-square)
+[![PyPI - dbgr](https://img.shields.io/pypi/v/dbgr?label=dbgr&style=flat-square)](https://pypi.org/project/dbgr)
+[![PyPI - dbgr-server](https://img.shields.io/pypi/v/dbgr-server?label=dbgr-server&style=flat-square)](https://pypi.org/project/dbgr-server)
+[![Python Versions](https://img.shields.io/pypi/pyversions/dbgr-server?logo=python&style=flat-square)](https://pypi.org/project/dbgr-server)
 
+## GitHub
+
+[![GitHub last commit](https://img.shields.io/github/last-commit/arkhan/dbgr?style=flat-square)](https://github.com/arkhan/dbgr/commits/master)
+[![License](https://img.shields.io/github/license/arkhan/dbgr?style=flat-square)](https://github.com/arkhan/dbgr/blob/master/LICENSE)
 
 # About this project
-This is not original `wdb.server`, original `wdb.server` placed [here](https://github.com/Kozea/wdb/tree/master/server)
 
-# Why?
-Original project was written more that 6 years ago, with `tornado` on backend and `coffescript/bower/grunt` on frontend.
-These are very old technologies. I wanted to be able to expand functionality and fix bugs.
-But I don't want to study and support the product based on old technologies.
+**dbgr** is a full featured web debugger based on a client-server architecture,
+similar in spirit to [pudb](https://github.com/inducer/pudb) but running as a web
+application instead of a terminal UI. It lets you step through code, inspect
+locals/globals in a live tree view, set breakpoints, and evaluate Python
+expressions, all from your browser.
 
-# How I can switch to this version?
+This project is a continuation of the original [`wdb`](https://github.com/Kozea/wdb)
+client/server debugger by Florian Mounier (Kozea), and of
+[`wdb_server_aiohttp`](https://github.com/shepilov-vladislav/wdb_server_aiohttp),
+Shepilov Vladislav's `aiohttp`-based rewrite of the original `tornado` server.
+Both of those projects had gone stale (last releases several years old, built
+on stacks that have since been deprecated), so **dbgr** picks up where they
+left off: the server was migrated from `aiohttp` to `FastAPI`, the frontend
+editor was upgraded from CodeMirror 5 to CodeMirror 6, and a pudb-style
+variables/watches panel was added next to the source and console panes.
 
-## Local installation
+This is an actively maintained fork meant to keep the project usable on
+current Python and browser versions. Contributions, bug reports, and ideas
+for where to take it next are welcome — see [Contribute](#contribute) below.
 
-`pip uninstall wdb.server && pip install wdb.server.aiohttp`
+# What changed from the original `wdb`/`wdb_server_aiohttp`
 
-## Docker installation
-
-`docker run -p 1984:1984 -p 19840:19840 shepilovvladislav/wdb`
-
-# What's difference beetween original wdb.server and this project
-
-- Tornado -> aiohttp
-- Coffescript -> Typescript
-- Bower -> npm
+- `aiohttp` -> `FastAPI` / `uvicorn` server
+- CodeMirror 5 -> CodeMirror 6 editor
+- Added a pudb-style variables/watches panel (locals, globals, and expandable
+  containers) next to the source and console panes
+- `tornado` -> `aiohttp` (inherited from `wdb_server_aiohttp`) -> `FastAPI`
+- Coffeescript -> Typescript
+- Bower -> npm/yarn
 - Grunt -> Webpack
 - yapf -> black
-- Added support of themes for any screen
-- Added responsibility for `PROCESSES` tab
-- Added support of Safari
-- wdb now works without internet access(original project required Google fonts from CDN)
-- 100% Code coverage
-- Used alpine base image
-
-# What's plans?
-
-- Change [CodeMirror](http://codemirror.net/) -> [Monaco](https://microsoft.github.io/monaco-editor)
-- Cover frontend with unit tests
-- Add integration tests frontend <-> backend
-- Add support of multithread/multiprocess/async debugging
+- Support for themes on any screen size
+- Support for Safari
+- Works without internet access (the original project required Google Fonts
+  from a CDN)
+- Renamed packages/imports: `wdb` -> `dbgr`, `wdb.server` -> `dbgr-server`
 
 # Description
 
-[![](https://raw.github.com/Kozea/wdb/master/wdb.png)](https://raw.github.com/Kozea/wdb/master/wdb-lg.png)
+**dbgr** is a full featured web debugger based on a client-server architecture.
 
+The dbgr server, which is responsible for managing debugging instances along
+with browser connections (through websockets), is based on
+[FastAPI](https://fastapi.tiangolo.com/). The dbgr client allows step by step
+debugging, in-program python code execution, code edition (based on
+[CodeMirror](https://codemirror.net/)), and setting breakpoints.
 
-**wdb** is a full featured web debugger based on a client-server architecture.
+Due to this architecture, all of this is fully compatible with **multithread**
+and **multiprocess** programs.
 
-The wdb server which is responsible of managing debugging instances along with browser connections (through websockets) is based on [aiohttp](https://docs.aiohttp.org).
-The wdb clients allow step by step debugging, in-program python code execution, code edition (based on [CodeMirror](http://codemirror.net/)) setting breakpoints...
+**dbgr** works with Python 3. It is possible to debug a program running on
+one computer with a debugging server running on another computer, inside a
+web page on a third computer.
 
-Due to this architecture, all of this is fully compatible with **multithread** and **multiprocess** programs.
+It is also possible to pause a currently running python process/thread using
+code injection from the web interface (this requires `gdb` and `ptrace`
+enabled).
 
-**wdb** works with python 2 (2.6, 2.7), python 3 (3.2, 3.3, 3.4, 3.5) and pypy.
-Even better, it is possible to debug a python 2 program with a wdb server running on python 3 and vice-versa or debug a program running on a computer with a debugging server running on another computer inside a web page on a third computer!
+In other words, it's a very enhanced version of `pdb` directly in your
+browser, with nice features.
 
-Even betterer, it is now possible to pause a currently running python process/thread using code injection from the web interface. (This requires gdb and ptrace enabled)
+## Installation
 
-In other words it's a very enhanced version of pdb directly in your browser with nice features.
+Install the server (this pulls in the web interface and the debugging
+protocol server):
 
-
-## Installation:
-
-Global installation:
-
+```bash
+$ pip install dbgr-server
 ```
-    $ pip install wdb.server.aiohttp
+
+In each virtualenv/interpreter you want to debug, install the client:
+
+```bash
+$ pip install dbgr
 ```
 
-In virtualenv or with a different python installation:
-
-```
-    $ pip install wdb
-```
-
-(You must have the server installed and running)
+(You must have the server installed and running somewhere reachable from the
+process you're debugging.)
 
 ## Quick test
 
-To try wdb, first you have to start the wdb server:
+To try dbgr, first start the dbgr server:
 
-```
-    $ wdb.server.py &
+```bash
+$ dbgr.server.py &
 ```
 
 Next run:
 
+```bash
+$ python -m dbgr your_file.py
 ```
-    $ python -m wdb your_file.py
-```
 
-Wdb will open a debugging window right in your browser, paused at the beginning of your program.
+Dbgr will open a debugging window right in your browser, paused at the
+beginning of your program.
 
-You can access to <http://localhost:1984/> to have an overview of the server.
+You can access <http://localhost:1984/> to have an overview of the server.
 
-NB: You have to start the server only once. Multiple Debugging sessions can be run simultaneously without problem.
+NB: You have to start the server only once. Multiple debugging sessions can
+be run simultaneously without problem.
 
 This is not the only way to debug a program, see below.
-
 
 ## Usage
 
@@ -138,213 +123,180 @@ This is not the only way to debug a program, see below.
 To debug any program, with the server on, just add:
 
 ```python
-    import wdb
-    wdb.set_trace()
+import dbgr
+dbgr.set_trace()
 ```
 
-anywhere in your code. Your program will stop at the set_trace line. (Just like pdb)
-
+anywhere in your code. Your program will stop at the `set_trace` line (just
+like `pdb`).
 
 ### Tracing code
 
 To inspect your code on exception, you can do the following:
 
 ```python
-    from wdb import trace
-    with trace():
-        wrong_code()
+from dbgr import trace
+with trace():
+    wrong_code()
 ```
 
 Any exception during `wrong_code` will launch a debugging session.
 
-You can also use the `start_trace()` and `stop_trace` methods.
-(It's better to put the `stop_trace` in a finally block to avoid tracing all your program after an exception.)
-
+You can also use the `start_trace()` and `stop_trace()` methods (put
+`stop_trace` in a `finally` block to avoid tracing the rest of your program
+after an exception).
 
 ### Debugging web servers
 
-wdb provides some tools to make it work nicely with different webservers:
+dbgr provides some tools to make it work nicely with different web servers:
 
+#### WSGI servers
 
-#### Wsgi servers
-
-For wsgi servers you can use the `WdbMiddleware`:
+For WSGI servers you can use the `DbgrMiddleware`:
 
 ```python
-    from wdb.ext import WdbMiddleware
-    wsgi_app = Whathever_wsgi_server_lib()
-    my_app = WdbMiddleware(wsgi_app)
-    my_app.serve_forever()
+from dbgr.ext import DbgrMiddleware
+wsgi_app = Whatever_wsgi_server_lib()
+my_app = DbgrMiddleware(wsgi_app)
+my_app.serve_forever()
 ```
 
 ##### Flask
 
-or using Flask:
-
 ```python
-    from flask import Flask
-    from wdb.ext import WdbMiddleware
-    app = Flask(__name__)
-    app.debug = True
-    app.wsgi_app = WdbMiddleware(app.wsgi_app)
-    app.run(use_debugger=False) # Disable builtin Werkzeug debugger
-```
-
-you can also use the [Flask-Wdb](https://github.com/techniq/flask-wdb/) extension
-
-```python
-    from flask import Flask
-    from flask_wdb import Wdb
-
-    app = Flask(__name__)
-    app.debug = True
-    Wdb(app)
-
-    app.run()
+from flask import Flask
+from dbgr.ext import DbgrMiddleware
+app = Flask(__name__)
+app.debug = True
+app.wsgi_app = DbgrMiddleware(app.wsgi_app)
+app.run(use_debugger=False)  # Disable builtin Werkzeug debugger
 ```
 
 ##### Django
 
-or using django:
-
-Add the middleware in your `wsgi.py`:
-
-After:
+Add the middleware in your `wsgi.py`, after:
 
 ```python
-    from django.core.wsgi import get_wsgi_application
-    application = get_wsgi_application()
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
 ```
 
-Add this:
+add:
 
 ```python
-    from wdb.ext import WdbMiddleware
-    application = WdbMiddleware(application)
+from dbgr.ext import DbgrMiddleware
+application = DbgrMiddleware(application)
 ```
 
 And in your `settings.py`, activate exception propagation:
 
 ```python
-    DEBUG = True
-    DEBUG_PROPAGATE_EXCEPTIONS = True
+DEBUG = True
+DEBUG_PROPAGATE_EXCEPTIONS = True
 ```
 
 ##### CherryPy
 
-or using CherryPy:
-
 ```python
 import cherrypy
-from wdb.ext import WdbMiddleware
+from dbgr.ext import DbgrMiddleware
 
 class HelloWorld(object):
     @cherrypy.expose
     def index(self):
-        undefined_method() # This will fail
+        undefined_method()  # This will fail
         return "Hello World!"
 
-cherrypy.config.update({'global':{'request.throw_errors': True}})
+cherrypy.config.update({'global': {'request.throw_errors': True}})
 app = cherrypy.Application(HelloWorld())
-app.wsgiapp.pipeline.append(('debugger', WdbMiddleware))
+app.wsgiapp.pipeline.append(('debugger', DbgrMiddleware))
 
 cherrypy.quickstart(app)
 ```
 
 #### Tornado
 
-In tornado, which is not a wsgi server, you can use the `wdb_tornado` function which will monkey patch the execute method on RequestHandlers:
+In Tornado, which is not a WSGI server, you can use the `dbgr_tornado`
+function, which will monkey-patch the `execute` method on `RequestHandler`s:
 
 ```python
-    from wdb.ext import wdb_tornado
-    from tornado.web import Application
-    my_app = Application([(r"/", MainHandler)])
-    if options.debug:
-        wdb_tornado(my_app)
-    my_app.listen(8888)
+from dbgr.ext import dbgr_tornado
+from tornado.web import Application
+my_app = Application([(r"/", MainHandler)])
+if options.debug:
+    dbgr_tornado(my_app)
+my_app.listen(8888)
 ```
 
-#### Page loading time become slow
+#### Page loading time becomes slow
 
-
-If wdb slows down too much of your application (tracing all the things takes time), you can start it disabled with:
+If dbgr slows down your application too much (tracing everything takes
+time), you can start it disabled with:
 
 ```python
-    my_app = WdbMiddleware(wsgi_app, start_disabled=True)  # or
-    wdb_tornado(my_app, start_disabled=True)
+my_app = DbgrMiddleware(wsgi_app, start_disabled=True)  # or
+dbgr_tornado(my_app, start_disabled=True)
 ```
 
 Then when you get an exception just click on the on/off button.
 
-
 ## Remote debugging
 
-You can easily do remote debugging with wdb:
+You can easily do remote debugging with dbgr:
 
-Let's say you want to run a program `p.py` on computer A and you want to debug it on computer B.
+Let's say you want to run a program `p.py` on computer A and you want to
+debug it on computer B.
 
-Start wdb server on computer A and launch this:
+Start the dbgr server on computer A and launch this:
 
-```
-    WDB_NO_BROWSER_AUTO_OPEN=True python -m wdb p.py
-```
-
-And open a browser on computer B at the url given by wdb log.
-
-
-Now you can also run wdb server on a computer C and run on computer A:
-
-```
-    WDB_NO_BROWSER_AUTO_OPEN=True WDB_SOCKET_SERVER=computerC.addr WDB_SOCKET_PORT=19840 python -m wdb p.py
+```bash
+DBGR_NO_BROWSER_AUTO_OPEN=True python -m dbgr p.py
 ```
 
-And go with computer B to http://computerC/debug/session/[uuid in log] there you can step into p.py running in computer A. Yay !
+And open a browser on computer B at the url given by the dbgr log.
 
-You can use different configurations:
+Now you can also run the dbgr server on a computer C and run on computer A:
 
-See `wdb.server.py --help` for changing ports on server and these environnement vars for wdb instances:
+```bash
+DBGR_NO_BROWSER_AUTO_OPEN=True DBGR_SOCKET_SERVER=computerC.addr DBGR_SOCKET_PORT=19840 python -m dbgr p.py
+```
+
+And go with computer B to `http://computerC/debug/session/[uuid in log]`,
+where you can step into `p.py` running on computer A.
+
+You can use different configurations. See `dbgr.server.py --help` for
+changing ports on the server, and these environment variables for dbgr
+instances:
 
 ```
-WDB_SOCKET_SERVER         # WDB server host
-WDB_SOCKET_PORT           # WDB server socket port
-WDB_WEB_SERVER            # WDB server host for browser openning
-WDB_WEB_PORT              # WDB server http port
-WDB_NO_BROWSER_AUTO_OPEN  # To disable the automagic browser openning (which can't be done if the browser is not on the same machine)
+DBGR_SOCKET_SERVER         # dbgr server host
+DBGR_SOCKET_PORT           # dbgr server socket port
+DBGR_WEB_SERVER            # dbgr server host for browser opening
+DBGR_WEB_PORT               # dbgr server http port
+DBGR_NO_BROWSER_AUTO_OPEN  # Disable automatic browser opening (needed if the browser is not on the same machine)
 ```
+
 ### Docker
 
-If you are developing locally with [Docker](http://www.docker.com/), you can
-also use wdb to debug a code running inside a container. The basic setup looks
-like this:
+If you are developing locally with [Docker](https://www.docker.com/), you can
+also use dbgr to debug code running inside a container. A `Dockerfile` for
+the server is included in this repo; build it locally with:
 
-1. Start `wdb.server.py ` running in a container and expose port `1984` to your
-   host computer, this will server the debugging web server.
-2. Start debugging in your app container, making sure to set `WDB_SOCKET_SERVER`
-   to the address of the server container, and point it to the exposed port
-   `19840` on that server.
-3. When a trace is reached, open up `http://<your-docker-hostname>:1984`
-
-I will walk through this process in detail, using
-[Docker Compose](https://docs.docker.com/compose/) to set up the containers.
-
-Let's say your `docker-compose.yml` looks like
-[their example for using with Django](https://docs.docker.com/compose/django/):
-
-```yaml
-db:
-  image: postgres
-web:
-  build: .
-  command: python manage.py runserver 0.0.0.0:8000
-  volumes:
-    - .:/code
-  ports:
-    - "8000:8000"
-  links:
-    - db
+```bash
+$ docker build -t dbgr-server .
 ```
 
-Next lets add the wdb server part now and tell the web to link to it:
+The basic setup looks like this:
+
+1. Start the `dbgr-server` container and expose port `1984` to your host
+   computer; this serves the debugging web UI.
+2. Start debugging in your app container, making sure to set
+   `DBGR_SOCKET_SERVER` to the address of the server container, and point it
+   to the exposed port `19840` on that server.
+3. When a trace is reached, open up `http://<your-docker-hostname>:1984`.
+
+Example `docker-compose.yml`, starting from
+[the official example for using Docker with Django](https://docs.docker.com/compose/django/):
 
 ```yaml
 db:
@@ -358,30 +310,31 @@ web:
     - "8000:8000"
   links:
     - db
-    - wdb
+    - dbgr
   environment:
-    WDB_SOCKET_SERVER: wdb
-    WDB_NO_BROWSER_AUTO_OPEN: True
-wdb:
-  image: shepilovvladislav/wdb
+    DBGR_SOCKET_SERVER: dbgr
+    DBGR_NO_BROWSER_AUTO_OPEN: True
+dbgr:
+  image: dbgr-server
   ports:
     - "1984:1984"
 ```
 
-And add `wdb` to your `requirements.txt` in your web app:
+Add `dbgr` to your `requirements.txt` in your web app:
 
 ```bash
-$ echo 'wdb' >> requirements.txt
+$ echo 'dbgr' >> requirements.txt
 ```
 
-Now we can use `wdb.set_trace()` in our python app.
+Now you can use `dbgr.set_trace()` in your python app:
 
 ```python
 # ... some code
-import wdb
-wdb.set_trace()
+import dbgr
+dbgr.set_trace()
 ```
-Then you have to rebuild your web application and start everything up again
+
+Then rebuild your web application and start everything up again:
 
 ```bash
 $ docker-compose stop
@@ -389,122 +342,128 @@ $ docker-compose build web
 $ docker-compose up
 ```
 
-
-Now you can access `http://<local docker server>:1984`, to
-see the traces as they come up in your app.
+Now you can access `http://<local docker server>:1984` to see the traces as
+they come up in your app.
 
 ## In browser usage
 
-Once you are in a breakpoint or in an exception, you can eval all you want in the prompt under the code.
-Multi-lines are partially supported using `[Shift] + [Enter]`.
-There is now help available by clicking on the top help button.
+Once you are in a breakpoint or in an exception, you can eval anything you
+want in the prompt under the code. Multi-lines are partially supported using
+`[Shift] + [Enter]`. There is help available by clicking the top help button.
 
-As of now the following special commands are supported during breakpoint:
+As of now, the following special commands are supported during a breakpoint:
 
-    * .s or [Ctrl] + [↓] or [F11]    : Step into
-    * .n or [Ctrl] + [→] or [F10]    : Step over (Next)
-    * .r or [Ctrl] + [↑] or [F9]     : Step out (Return)
-    * .c or [Ctrl] + [←] or [F8]     : Continue
-    * .u or [F7]                     : Until (Next over loops)
-    * .j lineno                      : Jump to lineno (Must be at bottom frame and in the same function)
-    * .b arg                         : Set a session breakpoint, see below for what arg can be*
-    * .t arg                         : Set a temporary breakpoint, arg follow the same syntax as .b
-    * .z arg                         : Delete existing breakpoint
-    * .l                             : List active breakpoints
-    * .f                             : Echo all typed commands in the current debugging session
-    * .d expression                  : Dump the result of expression in a table
-    * .w expression                  : Watch expression in current file (Click on the name to remove)
-    * .q                             : Quit
-    * .h                             : Get some help
-    * .e                             : Toggle file edition mode
-    * .g                             : Clear prompt
-    * .i [mime/type;]expression      : Display the result in an embed, mime type is auto detected on linux and defaults to "text/html" otherwise
-    * iterable!sthg                  : If cutter is installed, executes cut(iterable).sthg
-    * expr >! file                   : Write the result of expr in file
-    * !< file                        : Eval the content of file
-    * [Enter]                        : Eval the current selected text in page, useful to eval code in the source
-    *
-    * * arg is using the following syntax:
-    *   [file/module][:lineno][#function][,condition]
-    * which means:
-    *   - [file]                    : Break if any line of `file` is executed
-    *   - [file]:lineno             : Break on `file` at `lineno`
-    *   - [file][:lineno],condition : Break on `file` at `lineno` if `condition` is True (ie: i == 10)
-    *   - [file]#function           : Break when inside `function` function
-    *
-    * File is always current file by default and you can also specify a module like `logging.config`.
+```
+.s or [Ctrl] + [↓] or [F11]    : Step into
+.n or [Ctrl] + [→] or [F10]    : Step over (Next)
+.r or [Ctrl] + [↑] or [F9]     : Step out (Return)
+.c or [Ctrl] + [←] or [F8]     : Continue
+.u or [F7]                     : Until (Next over loops)
+.j lineno                      : Jump to lineno (must be at bottom frame and in the same function)
+.b arg                         : Set a session breakpoint, see below for what arg can be
+.t arg                         : Set a temporary breakpoint, arg follows the same syntax as .b
+.z arg                         : Delete existing breakpoint
+.l                             : List active breakpoints
+.f                             : Echo all typed commands in the current debugging session
+.d expression                  : Dump the result of expression in a table
+.w expression                  : Watch expression in current file (click on the name to remove)
+.q                             : Quit
+.h                             : Get some help
+.e                             : Toggle file edition mode
+.g                             : Clear prompt
+.i [mime/type;]expression      : Display the result in an embed; mime type is auto-detected on Linux and defaults to "text/html" otherwise
+iterable!sthg                  : If cutter is installed, executes cut(iterable).sthg
+expr >! file                   : Write the result of expr in file
+!< file                        : Eval the content of file
+[Enter]                        : Eval the current selected text on the page, useful to eval code in the source
 
-You can also eval a variable in the source by middle clicking on it.
-You can add/remove a breakpoint by clicking on the line number.
+* arg follows this syntax:
+    [file/module][:lineno][#function][,condition]
+  which means:
+    - [file]                    : Break if any line of `file` is executed
+    - [file]:lineno             : Break on `file` at `lineno`
+    - [file][:lineno],condition : Break on `file` at `lineno` if `condition` is True (e.g.: i == 10)
+    - [file]#function           : Break when inside `function`
+  File is always the current file by default; you can also specify a module
+  like `logging.config`.
+```
 
-NB: Hotkeys with arrows are purposely not triggered in the eval prompt to avoid conflicts when typing.
+You can also eval a variable in the source by middle-clicking on it. You can
+add/remove a breakpoint by clicking on the line number.
 
+NB: Hotkeys with arrows are purposely not triggered in the eval prompt, to
+avoid conflicts when typing.
 
-## Wdb Server
+## Dbgr Server
 
-To see which debugging session are currently open, open your browser at <http://localhost:1984/>.
-You can also close crashed session.
+To see which debugging sessions are currently open, open your browser at
+<http://localhost:1984/>. You can also close crashed sessions.
 
-From there you should also see all python process and their threads running and you can try to pause them during their execution to do step by step debugging and current variable inspection. **This is highly experimental and requires gdb and a kernel with ptrace enabled to inject python code into a running python process.**
-If you get `ptrace: Operation not permitted.` you will have to enable it.
+From there you should also see all Python processes and their threads
+running, and you can try to pause them during execution to do step by step
+debugging and current variable inspection. **This is highly experimental and
+requires gdb and a kernel with ptrace enabled to inject python code into a
+running python process.** If you get `ptrace: Operation not permitted.` you
+will have to enable it.
 
 Depending on your system it might work with:
+
 ```bash
-echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+$ echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 ```
 
-Make sure that wdb is installed for the python version running the program too.
+Make sure that `dbgr` is installed for the python version running the
+program too.
 
+## Importing dbgr each time is exhausting
 
-## Importing wdb each time is exhausting
-
-Yes to avoid that, you can add a `w` builtin at the beggining of your application:
-
+To avoid that, you can add a `w` builtin at the beginning of your
+application:
 
 ```python
-    from wdb.ext import add_w_builtin
-    add_w_builtin()
+from dbgr.ext import add_w_builtin
+add_w_builtin()
 ```
 
-you can now use the `w` object any where in your code:
+you can now use the `w` object anywhere in your code:
 
 ```python
-    my_code()
-    w.tf  # Stop next line
+my_code()
+w.tf  # Stop next line
+doubtful_code()
+```
+
+```python
+my_code()
+with w.trace():
     doubtful_code()
-```
-
-
-```python
-    my_code()
-    with w.trace():
-        doubtful_code()
 ```
 
 ## Code completion
 
-Wdb has dynamic code completion in eval prompt thanks to [jedi](https://github.com/davidhalter/jedi).
-
+dbgr has dynamic code completion in the eval prompt thanks to
+[jedi](https://github.com/davidhalter/jedi).
 
 ## FAQ
 
 ### In Firefox opened debugging pages are not closed when done
 
-It's a firefox config flag, visit `about:config` and set:
-`dom.allow_scripts_to_close_windows` to `true`
+It's a Firefox config flag; visit `about:config` and set
+`dom.allow_scripts_to_close_windows` to `true`.
 
 ### The logs are spammed with 'parsing Python module'
 
-If your logging configuration is set to display DEBUG logs, you may see a log for every imported file in your project any time WDB is active, like so:
+If your logging configuration is set to display DEBUG logs, you may see a log
+for every imported file in your project any time dbgr is active, like so:
 
 ```
 DEBUG 2017-07-16 13:15:03,772 index 49835 123145573191680 parsing Python module /project/.virtualenv/python-3.6.1/lib/python3.6/site-packages/package/file.py for indexing
 ```
 
+To silence only this message, add a config for the `importmagic` module. For
+example:
 
-To silence only this message, add a config for the importmagic module. For example:
-
-```
+```python
 LOGGING = {
     ...
     'loggers': {
@@ -517,18 +476,21 @@ LOGGING = {
 }
 ```
 
-
 ## Contribute
 
-All contributions are more than welcomed, use the fork luke !
-
+This project picks up an old, abandoned debugger and brings it back to a
+modern stack, but there's plenty left to do (see `TODO.org`): finishing the
+CodeMirror 6 migration polish, expanding the variables/watches panel,
+covering the frontend with unit tests, adding frontend/backend integration
+tests, and multithread/multiprocess/async debugging support are all open.
+All contributions are more than welcome — fork it and send a PR.
 
 ## Author
 
-* [Florian Mounier](http://github.com/paradoxxxzero) @ [Kozea](http://kozea.fr/)
-* [Shepilov Vladislav](https://github.com/shepilov-vladislav)
+* [Florian Mounier](http://github.com/paradoxxxzero) @ [Kozea](http://kozea.fr/) — original author of `wdb`
+* [Shepilov Vladislav](https://github.com/shepilov-vladislav) — author of `wdb_server_aiohttp`
+* [arkhan](https://github.com/arkhan) — current maintainer of `dbgr`
 
-
-## Licence
+## License
 
 This library is licensed under GPLv3

@@ -1092,7 +1092,7 @@ class Interaction(object):
         )
 
     def handle_exc(self):
-        """Return a formated exception traceback for wdb.js use"""
+        """Return a formated exception traceback for dbgr.js use"""
         exc_info = sys.exc_info()
         type_, value = exc_info[:2]
         self.db.obj_cache[id(exc_info)] = exc_info

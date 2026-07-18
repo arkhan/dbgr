@@ -1,6 +1,6 @@
 import { Log } from "./_base";
 import { History } from "./_history";
-import { Wdb } from "./wdb";
+import { Dbgr } from "./dbgr";
 import {
     EditorState,
     EditorView,
@@ -73,7 +73,7 @@ const searchHighlightField = StateField.define<DecorationSet>({
 });
 
 class Prompt extends Log {
-    public wdb: Wdb;
+    public dbgr: Dbgr;
     public $container: JQuery;
     public history: any;
     public view: EditorView;
@@ -82,9 +82,9 @@ class Prompt extends Log {
     private pendingCompletionResolve: ((result: CompletionResult | null) => void) | null;
     private completionTokFrom: number;
 
-    constructor(wdb: any) {
+    constructor(dbgr: any) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
         this.$container = $(".prompt");
         this.history = new History(this);
         this.pendingCompletionResolve = null;
@@ -135,7 +135,7 @@ class Prompt extends Log {
                 this.pendingCompletionResolve = null;
             }
 
-            this.wdb.ws.send("Complete", {
+            this.dbgr.ws.send("Complete", {
                 source: text,
                 pos,
                 line: lineNo,
@@ -181,7 +181,7 @@ class Prompt extends Log {
                 key: "Ctrl-d",
                 run: () => {
                     if (!this.get()) {
-                        this.wdb.die();
+                        this.dbgr.die();
                         return true;
                     }
                     return false;
@@ -206,7 +206,7 @@ class Prompt extends Log {
             {
                 key: "Ctrl-l",
                 run: () => {
-                    this.wdb.cls();
+                    this.dbgr.cls();
                     return true;
                 },
             },
@@ -238,14 +238,14 @@ class Prompt extends Log {
             {
                 key: "Shift-PageUp",
                 run: () => {
-                    this.wdb.interpreter.scroll(-1);
+                    this.dbgr.interpreter.scroll(-1);
                     return true;
                 },
             },
             {
                 key: "Shift-PageDown",
                 run: () => {
-                    this.wdb.interpreter.scroll(1);
+                    this.dbgr.interpreter.scroll(1);
                     return true;
                 },
             },
@@ -348,7 +348,7 @@ class Prompt extends Log {
             effects: this.readOnlyCmp.reconfigure(EditorState.readOnly.of(true)),
         });
         this.$container.addClass("loading");
-        this.wdb.execute(snippet);
+        this.dbgr.execute(snippet);
     }
 
     focus() {
@@ -421,7 +421,7 @@ class Prompt extends Log {
 
         const container = this.view.dom.parentElement;
         const dialog = document.createElement("div");
-        dialog.className = "wdb-history-search";
+        dialog.className = "dbgr-history-search";
 
         const titleEl = document.createElement("span");
         titleEl.className = "search-dialog-title";
@@ -429,7 +429,7 @@ class Prompt extends Log {
 
         const input = document.createElement("input");
         input.type = "text";
-        input.className = "wdb-search-field";
+        input.className = "dbgr-search-field";
         input.style.width = "10em";
 
         dialog.appendChild(titleEl);
@@ -505,7 +505,7 @@ class Prompt extends Log {
     }
 
     changes() {
-        return window.setTimeout(() => this.wdb.interpreter.scroll());
+        return window.setTimeout(() => this.dbgr.interpreter.scroll());
     }
 
     insertHistory(direction: string) {

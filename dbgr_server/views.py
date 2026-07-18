@@ -77,7 +77,7 @@ async def main_get(request: Request, type_: str, uuid: str) -> "TemplateResponse
     templates = _get_templates(request)
     return templates.TemplateResponse(
         request,
-        "wdb.html",
+        "dbgr.html",
         context={
             "uuid": uuid,
             "new_version": request.app.state.new_version,

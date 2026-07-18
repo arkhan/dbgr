@@ -1,15 +1,15 @@
 import { Log } from "./_base";
-import { Wdb } from "./wdb";
+import { Dbgr } from "./dbgr";
 import "./scss/_interpreter.scss";
 
 class Interpreter extends Log {
-    public wdb: Wdb;
+    public dbgr: Dbgr;
     public $terminal: JQuery;
     public $scrollback: JQuery;
 
-    constructor(wdb: Wdb) {
+    constructor(dbgr: Dbgr) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
         this.$terminal = $(".terminal")
             .on("click", () => {
                 if (!getSelection().toString()) {
@@ -31,7 +31,7 @@ class Interpreter extends Log {
             return;
         }
 
-        return this.wdb.prompt.$container.get(0).scrollIntoView({
+        return this.dbgr.prompt.$container.get(0).scrollIntoView({
             behavior: "smooth",
         });
     }
@@ -45,7 +45,7 @@ class Interpreter extends Log {
     }
 
     inspect(e: JQuery.ClickEvent) {
-        return this.wdb.inspect($(e.currentTarget).attr("href"));
+        return this.dbgr.inspect($(e.currentTarget).attr("href"));
     }
 
     short_open(e: JQuery.ClickEvent) {
@@ -72,7 +72,7 @@ class Interpreter extends Log {
 
     focus(e?: JQuery.EventBase) {
         const scroll = this.$terminal.scrollTop();
-        this.wdb.prompt.focus();
+        this.dbgr.prompt.focus();
         return this.$terminal.scrollTop(scroll);
     }
 }

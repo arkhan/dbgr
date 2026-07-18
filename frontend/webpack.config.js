@@ -5,7 +5,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 var path = require("path");
 
-var server_static_path = path.resolve(__dirname, "../wdb_server/static");
+var server_static_path = path.resolve(__dirname, "../dbgr_server/static");
 var server_static_image_path = path.resolve(server_static_path, "images");
 var server_static_libs_path = path.resolve(server_static_path, "libs");
 var server_static_mdl_path = path.resolve(
@@ -17,7 +17,7 @@ module.exports = {
     mode: "development",
     entry: {
         home: ["./src/_compat.ts", "./src/_base.ts", "./src/home.ts"],
-        wdb: [
+        dbgr: [
             "./src/_compat.ts",
             "./src/_base.ts",
             "./src/_websocket.ts",
@@ -29,7 +29,7 @@ module.exports = {
             "./src/_variables.ts",
             "./src/_switch.ts",
             "./src/_help.ts",
-            "./src/wdb.ts",
+            "./src/dbgr.ts",
         ],
     },
     module: {
@@ -104,7 +104,7 @@ module.exports = {
                     from: "./src/assets/images/favicon.ico",
                     to: path.resolve(server_static_image_path, "favicon.ico"),
                 },
-                // single mdl theme (indigo-red — see wdb_server/constants.py THEME)
+                // single mdl theme (indigo-red — see dbgr_server/constants.py THEME)
                 {
                     from:
                         "./node_modules/material-design-lite/dist/material.indigo-red.min.css",

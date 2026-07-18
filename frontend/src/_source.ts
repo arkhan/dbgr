@@ -136,7 +136,7 @@ function langExtension(fn: string): LanguageSupport {
 }
 
 class Source extends Log {
-    public wdb: any;
+    public dbgr: any;
     public $container: JQuery;
     public view: EditorView;
     public $code_mirror: JQuery;
@@ -152,9 +152,9 @@ class Source extends Log {
     private pendingScrollLno: number | null = null;
     private readonly containerResizeObserver: ResizeObserver;
 
-    constructor(wdb: any) {
+    constructor(dbgr: any) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
 
         const breaksGutterExt = gutter({
             class: "cm-breaks-gutter",
@@ -162,7 +162,7 @@ class Source extends Log {
             domEventHandlers: {
                 mousedown: (v: EditorView, line: any, event: Event) => {
                     const lno = v.state.doc.lineAt((line as any).from).number;
-                    this.wdb.toggle_break(`:${lno}`);
+                    this.dbgr.toggle_break(`:${lno}`);
                     return true;
                 },
             },
@@ -219,7 +219,7 @@ class Source extends Log {
                         this.editableCmp.reconfigure(EditorView.editable.of(true)),
                     ],
                 });
-                return this.wdb.paste_target(e);
+                return this.dbgr.paste_target(e);
             });
 
         this.containerResizeObserver = new ResizeObserver(() => {
@@ -242,13 +242,13 @@ class Source extends Log {
         if (full) {
             fn = `${fn}:${lineObj.number}:${head - lineObj.from + 1}`;
         }
-        return this.wdb.ws.send("External", fn);
+        return this.dbgr.ws.send("External", fn);
     }
 
     save() {
         if (this._readOnly) return;
         const new_file = this.view.state.doc.toString();
-        this.wdb.ws.send("Save", `${this.state.fn}|${new_file}`);
+        this.dbgr.ws.send("Save", `${this.state.fn}|${new_file}`);
         return (this.state.file = new_file);
     }
 
@@ -339,7 +339,7 @@ class Source extends Log {
         });
         this.$code_mirror.toggleClass("rw");
         document.querySelector(".el")?.classList.toggle("class");
-        this.wdb.print({ for: "Toggling edition", result: `Edit mode ${was_ro ? "on" : "off"}` });
+        this.dbgr.print({ for: "Toggling edition", result: `Edit mode ${was_ro ? "on" : "off"}` });
         if (!was_ro) {
             this.view.dispatch({
                 changes: { from: 0, to: this.view.state.doc.length, insert: this.state.file },

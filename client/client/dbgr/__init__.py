@@ -747,7 +747,7 @@ class Dbgr(object):
             sys.stdout, sys.stderr = stdout, stderr
 
     def dmp(self, thing):
-        """Dump the content of an object in a dict for wdb.js"""
+        """Dump the content of an object in a dict for dbgr.js"""
 
         def safe_getattr(key):
             """Avoid crash on getattr"""
@@ -805,7 +805,7 @@ class Dbgr(object):
         return stack, i
 
     def get_trace(self, frame, tb):
-        """Get a dict of the traceback for wdb.js use"""
+        """Get a dict of the traceback for dbgr.js use"""
         import linecache
 
         frames = []

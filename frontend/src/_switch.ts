@@ -1,9 +1,9 @@
 import { Log } from "./_base";
-import { Wdb } from "./wdb";
+import { Dbgr } from "./dbgr";
 import "./scss/_switch.scss";
 
 class Switch extends Log {
-    public wdb: Wdb;
+    public dbgr: Dbgr;
     public $trace: JQuery;
     public $switches: JQuery;
     public $command: JQuery;
@@ -11,9 +11,9 @@ class Switch extends Log {
     public $interpreter: JQuery;
     public $variables: JQuery;
 
-    constructor(wdb: Wdb) {
+    constructor(dbgr: Dbgr) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
         this.$trace = $(".trace");
         this.$switches = $(".switch").click((e) =>
             this.switch($(e.currentTarget))
@@ -29,7 +29,7 @@ class Switch extends Log {
     switch($switch: JQuery) {
         if ($switch.is(".power")) {
             if ($switch.is(".off")) {
-                return this.wdb.disable();
+                return this.dbgr.disable();
             } else if ($switch.is(".on")) {
                 return parent.postMessage("activate", "*");
             }
@@ -69,7 +69,7 @@ class Switch extends Log {
             .addClass("on")
             .removeClass("mdl-button--accent");
         this.$source.removeClass("hidden");
-        return this.wdb.source.size();
+        return this.dbgr.source.size();
     }
 
     close_code() {
@@ -79,7 +79,7 @@ class Switch extends Log {
             .addClass("off")
             .addClass("mdl-button--accent");
         this.$source.addClass("hidden");
-        return this.wdb.source.size();
+        return this.dbgr.source.size();
     }
 
     open_term() {
@@ -89,7 +89,7 @@ class Switch extends Log {
             .addClass("on")
             .removeClass("mdl-button--accent");
         this.$interpreter.removeClass("hidden");
-        return this.wdb.source.size();
+        return this.dbgr.source.size();
     }
 
     close_term() {
@@ -99,7 +99,7 @@ class Switch extends Log {
             .addClass("off")
             .addClass("mdl-button--accent");
         this.$interpreter.addClass("hidden");
-        return this.wdb.source.size();
+        return this.dbgr.source.size();
     }
 
     open_variables() {
@@ -121,7 +121,7 @@ class Switch extends Log {
     }
 
     command($command: JQuery) {
-        return this.wdb.execute("." + $command.attr("data-command"));
+        return this.dbgr.execute("." + $command.attr("data-command"));
     }
 }
 

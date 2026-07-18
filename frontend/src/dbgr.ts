@@ -33,9 +33,9 @@ function runMode(text: string, _mode: string, el: HTMLElement): void {
         el.appendChild(document.createTextNode(text.slice(pos)));
     }
 }
-import "./scss/wdb.scss";
+import "./scss/dbgr.scss";
 
-export class Wdb extends Log {
+export class Dbgr extends Log {
     public prototype: any;
     public started: any;
     public cwd: any;
@@ -925,9 +925,9 @@ mdl-shadow--2dp object`,
 
 declare global {
     interface Window {
-        wdb: Wdb;
+        dbgr: Dbgr;
         componentHandler: any;
     }
 }
 
-$(() => (window.wdb = new Wdb()));
+$(() => (window.dbgr = new Dbgr()));

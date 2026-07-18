@@ -1,5 +1,0 @@
-[Unit]
-Description=Wdb server
-
-[Service]
-ExecStart=/usr/bin/wdb.server.py

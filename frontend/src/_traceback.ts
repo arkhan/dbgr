@@ -1,21 +1,21 @@
 import { Log } from "./_base";
-import { Wdb } from "./wdb";
+import { Dbgr } from "./dbgr";
 import "./scss/_traceback.scss";
 
 class Traceback extends Log {
-    public wdb: Wdb;
+    public dbgr: Dbgr;
     public $traceback: JQuery;
 
-    constructor(wdb: Wdb) {
+    constructor(dbgr: Dbgr) {
         super();
-        this.wdb = wdb;
+        this.dbgr = dbgr;
         this.$traceback = $(".traceback");
         this.$traceback.on("click", ".trace-line", this.select.bind(this));
     }
 
     select(e: JQuery.ClickEvent) {
         const level = $(e.currentTarget).attr("data-level");
-        this.wdb.select_trace(level);
+        this.dbgr.select_trace(level);
         // Yeah...
         if ($(".mdl-layout__obfuscator").is(".is-visible")) {
             // @ts-ignore
@@ -44,7 +44,7 @@ mdl-list__item mdl-list__item--three-line trace-` + frame.level,
                     );
 
                 for (let brk of Array.from(
-                    this.wdb.source.breakpoints[frame.file] || []
+                    this.dbgr.source.breakpoints[frame.file] || []
                 ) as any) {
                     if (!brk.cond && !brk.fun && !brk.lno) {
                         $traceline.addClass("breakpoint");
@@ -83,7 +83,7 @@ mdl-list__item mdl-list__item--three-line trace-` + frame.level,
                         )
                 );
 
-                this.wdb.code($tracebody, frame.code, ["ellipsis"]);
+                this.dbgr.code($tracebody, frame.code, ["ellipsis"]);
 
                 $traceline.append($primary);
                 result.push(this.$traceback.prepend($traceline));
@@ -108,7 +108,7 @@ mdl-list__item mdl-list__item--three-line trace-` + frame.level,
         // TODO: other platforms
         if (!!~fn.indexOf("site-packages")) {
             return "library_books";
-        } else if (fn.startsWith(this.wdb.cwd) || fn[0] !== "/") {
+        } else if (fn.startsWith(this.dbgr.cwd) || fn[0] !== "/") {
             return "star";
         } else if (fn.startsWith("/home/")) {
             return "home";
