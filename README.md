@@ -276,48 +276,88 @@ DBGR_WEB_PORT               # dbgr server http port
 DBGR_NO_BROWSER_AUTO_OPEN  # Disable automatic browser opening (needed if the browser is not on the same machine)
 ```
 
-### Docker
+### Docker / Podman
 
-If you are developing locally with [Docker](https://www.docker.com/), you can
-also use dbgr to debug code running inside a container. A `Dockerfile` for
-the server is included in this repo; build it locally with:
+This repo ships a `Containerfile` (works with both `podman build` and
+`docker build -f Containerfile`) and a `compose.yml` to run the dbgr server
+in a container.
+
+Quick start:
 
 ```bash
-$ docker build -t dbgr-server .
+$ podman compose up --build     # or: docker compose up --build
 ```
 
-The basic setup looks like this:
+This builds the image and starts the `dbgr-server` service, publishing:
 
-1. Start the `dbgr-server` container and expose port `1984` to your host
-   computer; this serves the debugging web UI.
-2. Start debugging in your app container, making sure to set
-   `DBGR_SOCKET_SERVER` to the address of the server container, and point it
-   to the exposed port `19840` on that server.
-3. When a trace is reached, open up `http://<your-docker-hostname>:1984`.
+- `1984` — the web UI (open `http://localhost:1984` to see running sessions)
+- `19840` — the socket port dbgr clients connect to
 
-Example `docker-compose.yml`, starting from
+Or build/run it manually without compose:
+
+```bash
+$ podman build -f Containerfile -t dbgr-server .
+$ podman run --rm -p 1984:1984 -p 19840:19840 dbgr-server
+```
+
+The basic setup for debugging an app that runs in its own container looks
+like this:
+
+1. Start the `dbgr-server` container (via `compose.yml` or manually), with
+   port `1984` published to your host — this serves the debugging web UI.
+2. In your app container, install the `dbgr` client (`pip install dbgr`) and
+   set the `DBGR_*` environment variables below so it can reach the
+   `dbgr-server` container over the socket port (`19840`).
+3. When a trace is reached, open the URL dbgr prints (or
+   `http://localhost:1984` directly) to step through the code.
+
+#### Environment variables
+
+These are read by the **`dbgr` client** (the library you `pip install` and
+`import` in the process you're debugging) — set them on whatever container
+runs your application, not on `dbgr-server` itself:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `DBGR_SOCKET_SERVER` | `localhost` | Host of the `dbgr-server` socket endpoint the client connects to. In `compose.yml`, use the service name (e.g. `dbgr-server`) so it resolves inside the docker network. |
+| `DBGR_SOCKET_PORT` | `19840` | Port of that socket endpoint. |
+| `DBGR_WEB_SERVER` | *(falls back to `DBGR_SOCKET_SERVER`)* | Host used to build the "open this in your browser" link. Set this to whatever hostname *your browser* can resolve (usually `localhost` if ports are published to the host) — it does **not** need to match `DBGR_SOCKET_SERVER`. |
+| `DBGR_WEB_PORT` | `1984` | Port of the dbgr-server web UI, used in that same link. |
+| `DBGR_NO_BROWSER_AUTO_OPEN` | `False` | Set to `True` inside containers — there's no browser to auto-open, and dbgr will otherwise try (and fail) to launch one. Use the printed URL instead. |
+| `DBGR_LOG` | `WARNING` | Log level for all dbgr client loggers. |
+| `DBGR_<NAME>_LOG` | `DBGR_LOG` | Per-logger override; `NAME` is one of `MAIN`, `TRACE`, `UI`, `EXT`, `BP` (e.g. `DBGR_TRACE_LOG=DEBUG`). |
+
+`compose.yml` includes a commented-out example `app` service showing how to
+wire these up against the `dbgr-server` service defined next to it.
+
+Example minimal `docker-compose.yml`, starting from
 [the official example for using Docker with Django](https://docs.docker.com/compose/django/):
 
 ```yaml
-db:
-  image: postgres
-web:
-  build: .
-  command: python manage.py runserver 0.0.0.0:8000
-  volumes:
-    - .:/code
-  ports:
-    - "8000:8000"
-  links:
-    - db
-    - dbgr
-  environment:
-    DBGR_SOCKET_SERVER: dbgr
-    DBGR_NO_BROWSER_AUTO_OPEN: True
-dbgr:
-  image: dbgr-server
-  ports:
-    - "1984:1984"
+services:
+  db:
+    image: postgres
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - dbgr-server
+    environment:
+      DBGR_SOCKET_SERVER: dbgr-server
+      DBGR_WEB_SERVER: localhost
+      DBGR_NO_BROWSER_AUTO_OPEN: "True"
+  dbgr-server:
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "1984:1984"
+      - "19840:19840"
 ```
 
 Add `dbgr` to your `requirements.txt` in your web app:
@@ -337,13 +377,13 @@ dbgr.set_trace()
 Then rebuild your web application and start everything up again:
 
 ```bash
-$ docker-compose stop
-$ docker-compose build web
-$ docker-compose up
+$ podman compose stop
+$ podman compose up --build
 ```
 
-Now you can access `http://<local docker server>:1984` to see the traces as
-they come up in your app.
+Now you can access `http://localhost:1984` to see the traces as they come up
+in your app.
+
 
 ## In browser usage
 

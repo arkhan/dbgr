@@ -1,0 +1,48 @@
+# Usage:
+#   podman compose up --build     (or: docker compose up --build)
+#
+# This starts the dbgr-server web/debugging server. Point any Python process
+# you want to debug at it by installing the `dbgr` client (pip install dbgr)
+# and setting the DBGR_* environment variables documented below.
+
+services:
+  dbgr-server:
+    build:
+      context: .
+      dockerfile: Containerfile
+    container_name: dbgr-server
+    ports:
+      # Web UI: browse open debugging sessions at http://localhost:1984
+      - "1984:1984"
+      # Socket port dbgr clients connect to (set as DBGR_SOCKET_PORT on the client)
+      - "19840:19840"
+    restart: unless-stopped
+
+  # Example: your own application container, wired to debug against the
+  # dbgr-server service above. Uncomment and adapt to your project — this is
+  # not a runnable service on its own.
+  #
+  # app:
+  #   build: .
+  #   depends_on:
+  #     - dbgr-server
+  #   environment:
+  #     # Host dbgr clients connect to, to open the socket connection.
+  #     # Use the compose service name so it resolves inside the docker network.
+  #     DBGR_SOCKET_SERVER: dbgr-server
+  #     # Port dbgr-server listens on for client connections (default 19840).
+  #     DBGR_SOCKET_PORT: "19840"
+  #     # Host used to build the "open this in your browser" link that dbgr
+  #     # prints/opens. This is resolved from wherever *you* open the link
+  #     # (usually your host machine), so it should NOT be the internal
+  #     # container hostname unless your browser can resolve it too.
+  #     DBGR_WEB_SERVER: localhost
+  #     # Port dbgr-server's web UI is published on (default 1984).
+  #     DBGR_WEB_PORT: "1984"
+  #     # Containers have no browser to auto-open; disable it and use the
+  #     # printed URL instead.
+  #     DBGR_NO_BROWSER_AUTO_OPEN: "True"
+  #     # Optional: log level, either global (DBGR_LOG) or per-logger
+  #     # (DBGR_<NAME>_LOG for NAME in MAIN, TRACE, UI, EXT, BP).
+  #     DBGR_LOG: "WARNING"
+  #   command: python your_app.py
