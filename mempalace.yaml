@@ -1,0 +1,30 @@
+wing: dbgr
+rooms:
+- name: planning
+  description: Files from requirements/
+  keywords:
+  - planning
+  - requirements
+- name: frontend
+  description: Files from frontend/
+  keywords:
+  - frontend
+  - frontend
+- name: dbgr_server
+  description: Files from dbgr_server/
+  keywords:
+  - dbgr_server
+  - dbgr_server
+- name: testing
+  description: Files from tests/
+  keywords:
+  - testing
+  - tests
+- name: scripts
+  description: Files from utils/
+  keywords:
+  - scripts
+  - utils
+- name: general
+  description: Files that don't fit other rooms
+  keywords: []

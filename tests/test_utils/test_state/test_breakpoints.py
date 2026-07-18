@@ -4,7 +4,7 @@
 import pytest
 
 # Firstparty:
-from wdb_server.utils.state import Breakpoints, SyncWebSockets
+from dbgr_server.utils.state import Breakpoints, SyncWebSockets
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def breakpoints():
 
 
 async def test_add(mocker, breakpoints):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
     dummy_breakpoint = "dummy_breakpoint"
     assert breakpoints._breakpoints == []
     await breakpoints.add(dummy_breakpoint)
@@ -33,7 +33,7 @@ async def test_remove(mocker, breakpoints):
     await breakpoints.add(dummy_breakpoint)
     assert breakpoints._breakpoints == [dummy_breakpoint]
 
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
 
     await breakpoints.remove(dummy_breakpoint)
     assert breakpoints._breakpoints == []

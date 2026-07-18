@@ -6,7 +6,7 @@
         font-family: "Roboto Mono";
     }
 
-    .CodeMirror {
+    .cm-editor {
         flex: 1;
         height: auto;
         min-height: min-content;
@@ -16,21 +16,21 @@
             padding-bottom: 2em;
         }
 
-        .CodeMirror-cursor {
+        .cm-cursor {
             visibility: visible !important;
             width: auto;
             border: none;
             outline: 1px solid rgba(0, 0, 0, 0.5);
         }
 
-        &.CodeMirror-focused .CodeMirror-cursor {
+        &.cm-focused .cm-cursor {
             background: rgba(0, 0, 0, 0.75);
             animation: blink 1s ease-in-out infinite;
             outline: 0;
         }
     }
 
-    .CodeMirror-dialog {
+    .wdb-history-search {
         .not-found {
             color: orangered;
         }
@@ -41,8 +41,8 @@
     }
 }
 
-.CodeMirror-hints {
-    .CodeMirror-hint {
+.cm-tooltip-autocomplete {
+    ul li {
         max-width: 75vmin;
     }
 

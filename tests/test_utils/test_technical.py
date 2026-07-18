@@ -7,8 +7,8 @@ import psutil
 from mock import call
 
 # Firstparty:
-from wdb_server.utils.state import SyncWebSockets
-from wdb_server.utils.technical import refresh_process
+from dbgr_server.utils.state import SyncWebSockets
+from dbgr_server.utils.technical import refresh_process
 
 
 class PsutilProcessThreadMock:
@@ -250,8 +250,8 @@ expected_calls = [
 
 
 async def test_refresh_process_without_uuid(mocker):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.send")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.send")
     mock_processes = [
         empty_process,
         not_python_process,
@@ -278,8 +278,8 @@ async def test_refresh_process_without_uuid(mocker):
 
 async def test_refresh_process_with_uuid(mocker):
     test_uuid = "test_uuid"
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.send")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.send")
     mock_processes = [
         empty_process,
         not_python_process,

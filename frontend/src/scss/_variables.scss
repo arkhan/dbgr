@@ -1,0 +1,123 @@
+// pudb-style dark palette, matches the Monokai source editor.
+$vp-bg: #272822;
+$vp-bg-input: #1e1f1c;
+$vp-fg: #f8f8f2;
+$vp-muted: #75715e;
+$vp-border: #49483e;
+$vp-name: #a6e22e;
+$vp-value: #e6db74;
+$vp-accent: #66d9ef;
+$vp-danger: #f92672;
+
+.variables-panel {
+    font-size: 0.8em;
+    padding: 4px 0;
+    background: $vp-bg;
+    color: $vp-fg;
+
+    .var-section-title {
+        font-weight: 500;
+        font-size: 0.85em;
+        color: $vp-muted;
+        padding: 8px 8px 4px;
+        position: sticky;
+        top: 0;
+        background: $vp-bg;
+        border-bottom: 1px solid $vp-border;
+    }
+
+    .var-empty {
+        padding: 4px 8px;
+        color: $vp-muted;
+        font-style: italic;
+    }
+
+    .var-row {
+        display: flex;
+        align-items: baseline;
+        padding: 2px 8px;
+        white-space: nowrap;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        &.var-loading {
+            color: $vp-muted;
+            font-style: italic;
+        }
+
+        &.var-add-watch {
+            padding: 4px 8px;
+        }
+    }
+
+    .var-toggle {
+        flex: 0 0 1em;
+        text-align: center;
+        color: $vp-muted;
+
+        &.clickable {
+            cursor: pointer;
+
+            &:hover {
+                color: $vp-fg;
+            }
+        }
+    }
+
+    .var-name {
+        flex: 0 0 auto;
+        margin-right: 0.5em;
+        font-weight: 500;
+        color: $vp-name;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 14em;
+    }
+
+    .var-type {
+        flex: 0 0 auto;
+        margin-right: 0.5em;
+        color: $vp-muted;
+        font-size: 0.9em;
+    }
+
+    .var-value {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: text;
+        color: $vp-value;
+    }
+
+    .var-unwatch {
+        flex: 0 0 auto;
+        font-size: 1em;
+        cursor: pointer;
+        color: $vp-muted;
+
+        &:hover {
+            color: $vp-danger;
+        }
+    }
+
+    .var-edit-input,
+    .var-watch-input {
+        width: 100%;
+        font-size: 1em;
+        background: $vp-bg-input;
+        color: $vp-fg;
+        border: 1px solid $vp-border;
+        padding: 2px 4px;
+
+        &:focus {
+            outline: none;
+            border-color: $vp-accent;
+        }
+    }
+
+    .var-watch-input::placeholder {
+        color: $vp-muted;
+    }
+}

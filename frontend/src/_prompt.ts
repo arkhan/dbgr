@@ -1,317 +1,362 @@
 import { Log } from "./_base";
 import { History } from "./_history";
-import { CodeMirror } from "./_codemirror";
 import { Wdb } from "./wdb";
+import {
+    EditorState,
+    EditorView,
+    Compartment,
+    StateField,
+    StateEffect,
+    RangeSet,
+    Decoration,
+    DecorationSet,
+    highlightActiveLine,
+    drawSelection,
+    highlightSpecialChars,
+    keymap,
+    defaultKeymap,
+    historyKeymap,
+    insertNewlineAndIndent,
+    deleteToLineEnd,
+    deleteGroupBackward,
+    cursorLineUp,
+    cursorLineDown,
+    python,
+    autocompletion,
+    startCompletion,
+    completionStatus,
+    indentUnit,
+} from "./_codemirror";
+import type {
+    Extension,
+    Range,
+    ViewUpdate,
+    CompletionContext,
+    CompletionResult,
+    Completion,
+} from "./_codemirror";
+import { monokai } from "./_monokai-theme";
 import "./scss/_prompt.scss";
+
+const setSearchHighlightEff = StateEffect.define<RegExp | null>();
+
+const searchHighlightField = StateField.define<DecorationSet>({
+    create() {
+        return Decoration.none;
+    },
+    update(deco, tr) {
+        for (const eff of tr.effects) {
+            if (eff.is(setSearchHighlightEff)) {
+                if (eff.value === null) {
+                    return Decoration.none;
+                }
+                const re = eff.value;
+                const marks: Range<Decoration>[] = [];
+                const text = tr.state.doc.toString();
+                re.lastIndex = 0;
+                let match: RegExpExecArray;
+                while ((match = re.exec(text)) !== null) {
+                    if (match[0].length === 0) break;
+                    marks.push(
+                        Decoration.mark({ class: "cm-searching" }).range(
+                            match.index,
+                            match.index + match[0].length
+                        )
+                    );
+                }
+                return RangeSet.of(marks);
+            }
+        }
+        return deco.map(tr.changes);
+    },
+    provide: (f) => EditorView.decorations.from(f),
+});
 
 class Prompt extends Log {
     public wdb: Wdb;
     public $container: JQuery;
     public history: any;
-    public code_mirror: CodeMirror;
+    public view: EditorView;
     public $code_mirror: JQuery;
-    public completion: any;
-    public cur: any;
-    public tok: any;
+    private readOnlyCmp: Compartment;
+    private pendingCompletionResolve: ((result: CompletionResult | null) => void) | null;
+    private completionTokFrom: number;
 
     constructor(wdb: any) {
         super();
         this.wdb = wdb;
         this.$container = $(".prompt");
         this.history = new History(this);
+        this.pendingCompletionResolve = null;
+        this.completionTokFrom = 0;
+        this.readOnlyCmp = new Compartment();
 
-        this.code_mirror = CodeMirror(
-            (elt: any) => {
-                this.$code_mirror = $(elt);
-                return this.$container.prepend(elt);
+        const jediSource = async (context: CompletionContext): Promise<CompletionResult | null> => {
+            const state = context.state;
+            const pos = context.pos;
+            const text = state.doc.toString();
+
+            if (!text) return null;
+            if (text.startsWith(".") && text.length === 2) return null;
+
+            if (text === ".") {
+                const commands: Record<string, string> = {
+                    a: "History", b: "Break", c: "Continue", d: "Dump",
+                    e: "Edition", f: "Find", g: "Clear", h: "Help",
+                    i: "Display", j: "Jump", k: "Clear", l: "Breakpoints",
+                    m: "Restart", n: "Next", o: "Open", q: "Quit",
+                    r: "Return", s: "Step", t: "Tbreak", u: "Until",
+                    w: "Watch", x: "Diff", z: "Unbreak",
+                };
+                return {
+                    from: pos,
+                    options: Object.entries(commands).map(([key, help]) => ({
+                        label: "." + key,
+                        displayLabel: `.${key} (${help})`,
+                    })),
+                };
+            }
+
+            if (!context.explicit) {
+                const before = context.matchBefore(/[\w\.\(\[\{]+/);
+                if (!before) return null;
+            }
+
+            const match = context.matchBefore(/\w+/);
+            const tokFrom = match ? match.from : pos;
+            this.completionTokFrom = tokFrom;
+
+            const line = state.doc.lineAt(pos);
+            const lineNo = line.number;
+            const ch = pos - line.from;
+
+            if (this.pendingCompletionResolve) {
+                this.pendingCompletionResolve(null);
+                this.pendingCompletionResolve = null;
+            }
+
+            this.wdb.ws.send("Complete", {
+                source: text,
+                pos,
+                line: lineNo,
+                column: ch,
+                manual: context.explicit,
+            });
+
+            return new Promise<CompletionResult | null>((resolve) => {
+                this.pendingCompletionResolve = resolve;
+            });
+        };
+
+        const promptKeymap = keymap.of([
+            {
+                key: "Enter",
+                run: (view: EditorView) => {
+                    this.newLineOrExecute(view);
+                    return true;
+                },
             },
             {
-                value: "",
-                theme: "default",
-                language: "python",
-                viewportMargin: Infinity,
-                lineWrapping: true,
-                autofocus: true,
-                // Add nbsp
-                specialChars: /[\u0000-\u0019\u00a0\u00ad\u200b-\u200f\u2028\u2029\ufeff]/,
-            }
-        );
-
-        this.code_mirror.on("changes", this.changes.bind(this));
-
-        CodeMirror.registerHelper(
-            "hint",
-            "jedi",
-            (cm: any, callback: any, options: any) => {
-                let cur;
-                cur = cm.getCursor();
-                const tok = cm.getTokenAt(cur);
-                if (
-                    cm.getValue().startsWith(".") &&
-                    cm.getValue().length === 2
-                ) {
-                    return;
-                }
-                const from = CodeMirror.Pos(cur.line, tok.start);
-                const to = CodeMirror.Pos(cur.line, tok.end);
-                if (cm.getValue() === ".") {
-                    callback({
-                        from,
-                        to,
-                        list: (() => {
-                            const result = [];
-                            const object = {
-                                a: "History",
-                                b: "Break",
-                                c: "Continue",
-                                d: "Dump",
-                                e: "Edition",
-                                f: "Find",
-                                g: "Clear",
-                                h: "Help",
-                                i: "Display",
-                                j: "Jump",
-                                k: "Clear",
-                                l: "Breakpoints",
-                                m: "Restart",
-                                n: "Next",
-                                o: "Open",
-                                q: "Quit",
-                                r: "Return",
-                                s: "Step",
-                                t: "Tbreak",
-                                u: "Until",
-                                w: "Watch",
-                                x: "Diff",
-                                z: "Unbreak",
-                            } as any;
-                            for (let key of Object.keys(object || {})) {
-                                const help = object[key];
-                                result.push({
-                                    text: "." + key,
-                                    displayText: `.${key} <i>${this.leftpad(
-                                        "(" + help + ")",
-                                        14
-                                    )}</i>  `,
-                                    render(elt: any, data: any, cur: any) {
-                                        return $(elt).html(cur.displayText);
-                                    },
-                                });
-                            }
-                            return result;
-                        })(),
-                    });
-                    return;
-                }
-
-                if (!options.completeSingle) {
-                    // Auto triggered
-                    if (!tok.string.match(/[\w\.\(\[\{]/)) {
-                        return;
-                    }
-                }
-
-                this.wdb.ws.send("Complete", {
-                    source: cm.getValue(),
-                    pos: this.code_mirror.getRange({ line: 0, ch: 0 }, cur)
-                        .length,
-                    line: cur.line + 1,
-                    column: cur.ch,
-                    manual: options.completeSingle,
-                });
-
-                return (this.completion = {
-                    cur,
-                    tok,
-                    from,
-                    to,
-                    callback,
-                });
-            }
-        );
-
-        this.code_mirror.addKeyMap({
-            Enter: this.newLineOrExecute.bind(this),
-            Up: this.history.up.bind(this.history),
-            Down: this.history.down.bind(this.history),
-            "Ctrl-C": this.abort.bind(this),
-            "Ctrl-D": () => {
-                if (!this.get()) {
-                    return this.wdb.die();
-                }
-            },
-            "Ctrl-F"() {},
-            "Ctrl-R": () => this.searchBack(),
-            "Ctrl-S": () => this.searchBack(false),
-            "Ctrl-K": "killLine",
-            "Ctrl-L": this.wdb.cls.bind(this.wdb),
-            "Ctrl-Enter": "newlineAndIndent",
-            "Alt-Backspace": "delGroupBefore",
-            "Ctrl-Space": this.triggerAutocomplete.bind(this),
-            "Ctrl-Up": () => this.insertHistory("up"),
-            "Ctrl-Down": () => this.insertHistory("down"),
-            // Use page up/down for going up/down in multiline
-            PageUp: "goLineUp",
-            PageDown: "goLineDown",
-            "Shift-PageUp": () => {
-                return this.wdb.interpreter.scroll(-1);
-            },
-            "Shift-PageDown": () => {
-                return this.wdb.interpreter.scroll(1);
-            },
-            Tab: (cm: any, options: any) => {
-                const cur = this.code_mirror.getCursor();
-                const rng = this.code_mirror.getRange(
-                    { line: cur.line, ch: 0 },
-                    cur
-                );
-                if (rng.trim()) {
-                    return this.triggerAutocomplete(cm, options);
-                } else {
-                    const spaces = Array(
-                        this.code_mirror.getOption("indentUnit") + 1
-                    ).join(" ");
-                    return this.code_mirror.replaceSelection(spaces);
-                }
-            },
-        });
-
-        this.code_mirror.on("keyup", (cm: any, e: any) => {
-            if (!cm.getValue()) {
-                return;
-            }
-            if (8 < e.keyCode && e.keyCode < 42) {
-                return;
-            }
-            return CodeMirror.commands.autocomplete(cm, CodeMirror.hint.jedi, {
-                async: true,
-                completeSingle: false,
-                // If auto hint restore these defaults
-                extraKeys: {
-                    PageUp: "goPageUp",
-                    PageDown: "goPageDown",
-                    Home: "goLineStartSmart",
-                    Up(cm: any, handle: any) {
-                        handle._dirty = true;
-                        return handle.moveFocus(-1);
-                    },
-                    Down(cm: any, handle: any) {
-                        handle._dirty = true;
-                        return handle.moveFocus(1);
-                    },
-                    Enter: (cm: any, handle: any) => {
-                        if (handle._dirty) {
-                            return handle.pick();
-                        } else {
-                            return this.newLineOrExecute(cm);
-                        }
-                    },
-                    Right(cm: any, handle: any) {
-                        if (handle._dirty) {
-                            return handle.pick();
-                        } else {
-                            return CodeMirror.commands.goCharRight(cm);
-                        }
-                    },
-                    End: "goLineEnd",
+                key: "ArrowUp",
+                run: () => {
+                    this.history.up();
+                    return true;
                 },
-            });
+            },
+            {
+                key: "ArrowDown",
+                run: () => {
+                    this.history.down();
+                    return true;
+                },
+            },
+            {
+                key: "Ctrl-c",
+                run: () => {
+                    this.abort();
+                    return true;
+                },
+            },
+            {
+                key: "Ctrl-d",
+                run: () => {
+                    if (!this.get()) {
+                        this.wdb.die();
+                        return true;
+                    }
+                    return false;
+                },
+            },
+            { key: "Ctrl-f", run: () => true },
+            {
+                key: "Ctrl-r",
+                run: () => {
+                    this.searchBack(true);
+                    return true;
+                },
+            },
+            {
+                key: "Ctrl-s",
+                run: () => {
+                    this.searchBack(false);
+                    return true;
+                },
+            },
+            { key: "Ctrl-k", run: deleteToLineEnd },
+            {
+                key: "Ctrl-l",
+                run: () => {
+                    this.wdb.cls();
+                    return true;
+                },
+            },
+            { key: "Ctrl-Enter", run: insertNewlineAndIndent },
+            { key: "Alt-Backspace", run: deleteGroupBackward },
+            {
+                key: "Ctrl-Space",
+                run: (view: EditorView) => {
+                    startCompletion(view);
+                    return true;
+                },
+            },
+            {
+                key: "Ctrl-ArrowUp",
+                run: () => {
+                    this.insertHistory("up");
+                    return true;
+                },
+            },
+            {
+                key: "Ctrl-ArrowDown",
+                run: () => {
+                    this.insertHistory("down");
+                    return true;
+                },
+            },
+            { key: "PageUp", run: cursorLineUp },
+            { key: "PageDown", run: cursorLineDown },
+            {
+                key: "Shift-PageUp",
+                run: () => {
+                    this.wdb.interpreter.scroll(-1);
+                    return true;
+                },
+            },
+            {
+                key: "Shift-PageDown",
+                run: () => {
+                    this.wdb.interpreter.scroll(1);
+                    return true;
+                },
+            },
+            {
+                key: "Tab",
+                run: (view: EditorView) => {
+                    const state = view.state;
+                    const pos = state.selection.main.head;
+                    const line = state.doc.lineAt(pos);
+                    const textBefore = state.sliceDoc(line.from, pos);
+                    if (textBefore.trim()) {
+                        startCompletion(view);
+                        return true;
+                    }
+                    const indentStr = state.facet(indentUnit) || "    ";
+                    view.dispatch(state.replaceSelection(indentStr));
+                    return true;
+                },
+            },
+        ]);
+
+        const extensions: Extension[] = [
+            promptKeymap,
+            keymap.of([...defaultKeymap, ...historyKeymap]),
+            python(),
+            monokai,
+            highlightActiveLine(),
+            drawSelection(),
+            highlightSpecialChars(),
+            EditorView.lineWrapping,
+            searchHighlightField,
+            autocompletion({
+                override: [jediSource],
+                activateOnTyping: true,
+            }),
+            EditorView.updateListener.of((update: ViewUpdate) => {
+                if (update.docChanged) {
+                    this.changes();
+                }
+            }),
+            this.readOnlyCmp.of(EditorState.readOnly.of(false)),
+        ];
+
+        const state = EditorState.create({
+            doc: "",
+            extensions,
         });
+
+        const domContainer = document.createElement("div");
+        this.view = new EditorView({ state, parent: domContainer });
+        this.$code_mirror = $(this.view.dom);
+        this.$container.prepend(domContainer);
+        this.view.focus();
+    }
+
+    addSearchHighlight(re: RegExp): void {
+        this.view.dispatch({ effects: setSearchHighlightEff.of(re) });
+    }
+
+    removeSearchHighlight(): void {
+        this.view.dispatch({ effects: setSearchHighlightEff.of(null) });
     }
 
     complete(data: any) {
-        if (data.completions && this.completion) {
-            const { cur } = this.completion;
-            const { tok } = this.completion;
-            const hints = {
-                from: CodeMirror.Pos(cur.line, tok.start),
-                to: CodeMirror.Pos(cur.line, tok.end),
-                list: Array.from(data.completions).map((completion: any) => ({
-                    text: completion.base + completion.complete,
-                    from: CodeMirror.Pos(
-                        cur.line,
-                        cur.ch - completion.base.length
-                    ),
-                    to: cur,
-                    _completion: completion,
-                    render(elt: any, data: any, cur: any) {
-                        const c = cur._completion;
-                        const item = `<b>${c.base}</b>${c.complete}`;
-                        return $(elt).html(item);
-                    },
+        if (data.completions && this.pendingCompletionResolve) {
+            const resolve = this.pendingCompletionResolve;
+            this.pendingCompletionResolve = null;
+            const from = this.completionTokFrom;
+            resolve({
+                from,
+                options: Array.from(data.completions).map((c: any) => ({
+                    label: c.base + c.complete,
                 })),
-            };
-            CodeMirror.on(hints, "shown", () => {
-                let cls;
-                if (
-                    this.code_mirror.state.completionActive.options
-                        .completeSingle
-                ) {
-                    cls = "triggered";
-                } else {
-                    cls = "auto";
-                }
-                return $(
-                    this.code_mirror.state.completionActive.widget.hints
-                ).addClass(cls);
             });
-
-            this.completion.callback(hints);
             return;
         }
 
         if (data.imports) {
-            return CodeMirror.commands.autocomplete(
-                this.code_mirror,
-                (cm: any, options: any) => ({
-                    from: CodeMirror.Pos(0, 0),
-                    to: CodeMirror.Pos(0, 0),
-
-                    list: Array.from(data.imports).map((imp) => ({
-                        text: imp,
-                        from: CodeMirror.Pos(0, 0),
-                        to: CodeMirror.Pos(0, 0),
-                        render(elt: any, data: any, cur: any) {
-                            const item = `<em>${cur.text}</em>`;
-                            return $(elt).html(item);
-                        },
+            if (this.pendingCompletionResolve) {
+                const resolve = this.pendingCompletionResolve;
+                this.pendingCompletionResolve = null;
+                resolve({
+                    from: 0,
+                    options: Array.from(data.imports).map((imp: string) => ({
+                        label: imp,
                     })),
-                }),
-                {
-                    async: false,
-                    completeSingle: false,
-                }
-            );
+                });
+            }
         }
     }
 
-    triggerAutocomplete(cm: any, options?: any) {
-        return CodeMirror.commands.autocomplete(cm, CodeMirror.hint.jedi, {
-            async: true,
-            extraKeys: {
-                Right(cm: any, handle: any) {
-                    return handle.pick();
-                },
-            },
+    triggerAutocomplete() {
+        startCompletion(this.view);
+    }
+
+    newLineOrExecute(view: EditorView) {
+        const snippet = view.state.doc.toString().trim();
+        if (!snippet) return;
+        view.dispatch({
+            effects: this.readOnlyCmp.reconfigure(EditorState.readOnly.of(true)),
         });
-    }
-
-    newLineOrExecute(cm: any) {
-        const snippet = cm.getValue().trim();
-        if (!snippet) {
-            return;
-        }
-        cm.setOption("readOnly", "nocursor");
         this.$container.addClass("loading");
-        return this.wdb.execute(snippet);
+        this.wdb.execute(snippet);
     }
 
     focus() {
-        return this.code_mirror.focus();
+        return this.view.focus();
     }
 
     focused() {
-        return this.$code_mirror.hasClass("CodeMirror-focused");
+        return this.view.hasFocus;
     }
 
     abort() {
@@ -324,9 +369,9 @@ class Prompt extends Log {
             newline = false;
         }
         if (newline) {
-            this.code_mirror.execCommand("newlineAndIndent");
+            insertNewlineAndIndent(this.view);
         } else {
-            const snippet = this.code_mirror.getValue().trim();
+            const snippet = this.view.state.doc.toString().trim();
             this.history.historize(snippet);
             this.history.reset();
             this.set("");
@@ -336,16 +381,21 @@ class Prompt extends Log {
 
     unlock() {
         this.$container.removeClass("loading");
-        this.code_mirror.setOption("readOnly", false);
+        this.view.dispatch({
+            effects: this.readOnlyCmp.reconfigure(EditorState.readOnly.of(false)),
+        });
         return this.focus();
     }
 
     get() {
-        return this.code_mirror.getValue();
+        return this.view.state.doc.toString();
     }
 
-    set(val: any) {
-        return this.code_mirror.setValue(val);
+    set(val: string) {
+        const doc = this.view.state.doc;
+        this.view.dispatch({
+            changes: { from: 0, to: doc.length, insert: val },
+        });
     }
 
     leftpad(str: any, n: any, c?: any) {
@@ -368,75 +418,90 @@ class Prompt extends Log {
             back = true;
         }
         this.$code_mirror.addClass("extra-dialog");
-        const close = this.code_mirror.openDialog(
-            `\
-<span class="search-dialog-title">
-  Search ${back ? "backward" : "forward"}:
-</span>
-<input type="text" style="width: 10em" class="CodeMirror-search-field"/>\
-`,
-            (val: any, e: any) => {
-                return this.history.commitSearch();
-            },
-            {
-                bottom: true,
-                onInput: (e: any, val: any, close: any) => {
-                    if (!val) {
-                        return;
-                    }
-                    this.history.resetSearch();
-                    return $(".CodeMirror-search-field").toggleClass(
-                        "not-found",
-                        val &&
-                            !this.history[
-                                close.back ? "searchNext" : "searchPrev"
-                            ](val)
-                    );
-                },
-                onKeyDown: (e: any, val: any, close: any) => {
-                    if (
-                        (e.keyCode === 82 && e.ctrlKey) ||
-                        (e.keyCode === 83 && e.altKey)
-                    ) {
-                        close.back = true;
-                        $(".search-dialog-title").text("Search backward:");
-                        $(".CodeMirror-search-field").toggleClass(
-                            "not-found",
-                            val && !this.history.searchNext(val)
-                        );
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                    if (
-                        (e.keyCode === 83 && e.ctrlKey) ||
-                        (e.keyCode === 82 && e.altKey)
-                    ) {
-                        close.back = false;
-                        $(".search-dialog-title").text("Search forward:");
-                        $(".CodeMirror-search-field").toggleClass(
-                            "not-found",
-                            val && !this.history.searchPrev(val)
-                        );
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                    if (e.keyCode === 67 && e.ctrlKey) {
-                        close();
-                    }
-                    return false;
-                },
 
-                onClose: (dialog: any) => {
-                    this.history.rollbackSearch();
-                    return this.$code_mirror.removeClass("extra-dialog");
-                },
+        const container = this.view.dom.parentElement;
+        const dialog = document.createElement("div");
+        dialog.className = "wdb-history-search";
+
+        const titleEl = document.createElement("span");
+        titleEl.className = "search-dialog-title";
+        titleEl.textContent = `Search ${back ? "backward" : "forward"}:`;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "wdb-search-field";
+        input.style.width = "10em";
+
+        dialog.appendChild(titleEl);
+        dialog.appendChild(input);
+        container.appendChild(dialog);
+
+        let closed = false;
+        const closeData = { back };
+
+        const closeDialog = () => {
+            if (closed) return;
+            closed = true;
+            this.history.rollbackSearch();
+            container.removeChild(dialog);
+            this.$code_mirror.removeClass("extra-dialog");
+        };
+
+        const commitDialog = () => {
+            if (closed) return;
+            closed = true;
+            this.history.commitSearch();
+            container.removeChild(dialog);
+            this.$code_mirror.removeClass("extra-dialog");
+        };
+
+        input.addEventListener("input", () => {
+            const val = input.value;
+            if (!val) return;
+            this.history.resetSearch();
+            input.classList.toggle(
+                "not-found",
+                !!(val && !this.history[closeData.back ? "searchNext" : "searchPrev"](val))
+            );
+        });
+
+        input.addEventListener("keydown", (e: KeyboardEvent) => {
+            const val = input.value;
+            if (e.key === "Enter") {
+                commitDialog();
+            } else if (
+                (e.keyCode === 82 && e.ctrlKey) ||
+                (e.keyCode === 83 && e.altKey)
+            ) {
+                closeData.back = true;
+                titleEl.textContent = "Search backward:";
+                input.classList.toggle("not-found", !!(val && !this.history.searchNext(val)));
+                e.preventDefault();
+                e.stopPropagation();
+            } else if (
+                (e.keyCode === 83 && e.ctrlKey) ||
+                (e.keyCode === 82 && e.altKey)
+            ) {
+                closeData.back = false;
+                titleEl.textContent = "Search forward:";
+                input.classList.toggle("not-found", !!(val && !this.history.searchPrev(val)));
+                e.preventDefault();
+                e.stopPropagation();
+            } else if (e.ctrlKey && e.key === "c") {
+                closeDialog();
+            } else if (e.key === "Escape") {
+                closeDialog();
             }
-        );
-        return (close.back = back);
+        });
+
+        input.focus();
     }
 
     insert(str: any) {
-        return this.code_mirror.replaceRange(str, this.code_mirror.getCursor());
+        const pos = this.view.state.selection.main.head;
+        this.view.dispatch({
+            changes: { from: pos, insert: str },
+        });
     }
 
     changes() {

@@ -6,7 +6,7 @@ from mock import call
 
 # Firstparty:
 from conftest import DummyWebSocket
-from wdb_server.utils.state import SyncWebSockets, WebSockets
+from dbgr_server.utils.state import SyncWebSockets, WebSockets
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def websockets():
 
 
 async def test_add(mocker, dummy_websocket, websockets):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
 
     assert "dummy_websocket" not in websockets._sockets
     await websockets.add("dummy_websocket", dummy_websocket)

@@ -1,0 +1,9 @@
+// Single monospaced font everywhere (pudb-style terminal look).
+// Material Icons uses ligatures keyed to its own font — must stay excluded.
+* {
+    font-family: "Roboto Mono", "Courier New", monospace !important;
+}
+
+.material-icons {
+    font-family: "Material Icons" !important;
+}

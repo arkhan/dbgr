@@ -1,7 +1,9 @@
+@import "typography";
 @import "interpreter";
 @import "source";
 @import "switch";
 @import "traceback";
+@import "pudb-theme";
 
 body {
     transition: -webkit-filter 0.25s ease-out, filter 0.25s ease-out;
@@ -18,13 +20,20 @@ body {
     }
 }
 
-main {
-    background: white;
-}
+.source {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
 
-.CodeMirror,
-code {
-    font-family: "Roboto Mono";
+    > .cm-editor {
+        flex: 1;
+        min-height: 0;
+
+        .cm-scroller {
+            overflow: auto;
+        }
+    }
 }
 
 .split {

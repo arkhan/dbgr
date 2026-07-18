@@ -1,15 +1,14 @@
 import { Log } from "./_base";
 import { Prompt } from "./_prompt";
-import { CodeMirror } from "./_codemirror";
 
 class History extends Log {
     public prompt: Prompt;
     public index: number;
     public current: string;
-    public currentPos: CodeMirror.Pos;
+    public currentPos: number;
     public oldIndex: number;
     public originalIndex: number;
-    public overlay: CodeMirror.Overlay;
+    public overlay: RegExp | null;
     public history: string[];
     public sessionIndexStart: number;
     public lastResult: number;
@@ -19,7 +18,7 @@ class History extends Log {
         this.prompt = prompt;
         this.index = -1;
         this.current = "";
-        this.currentPos = CodeMirror.Pos(0, 0);
+        this.currentPos = 0;
 
         this.oldIndex = null;
         this.originalIndex = null;
@@ -52,22 +51,25 @@ class History extends Log {
         return this.sync();
     }
 
-    saveCurrent(): number {
+    saveCurrent(): void {
         this.current = this.prompt.get();
-        return (this.currentPos = this.prompt.code_mirror.getCursor());
+        this.currentPos = this.prompt.view.state.selection.main.head;
     }
 
     sync(): number {
         if (this.index === -1) {
             this.prompt.set(this.current);
-            return this.prompt.code_mirror.setCursor(this.currentPos);
+            this.prompt.view.dispatch({
+                selection: { anchor: this.currentPos },
+            });
         } else {
             this.prompt.set(this.history[this.index]);
-            return this.prompt.code_mirror.setCursor(
-                this.prompt.code_mirror.lineCount(),
-                0
-            );
+            const docLen = this.prompt.view.state.doc.length;
+            this.prompt.view.dispatch({
+                selection: { anchor: docLen },
+            });
         }
+        return this.index;
     }
 
     historize(snippet: string): string {
@@ -85,33 +87,16 @@ class History extends Log {
         );
     }
 
-    reset(): number {
+    reset(): void {
         this.index = -1;
         this.current = "";
-        return (this.currentPos = CodeMirror.Pos(0, 0));
+        this.currentPos = 0;
     }
 
-    clear(): number {
+    clear(): void {
         this.history = [];
         this.sessionIndexStart = 0;
-        return this.reset();
-    }
-
-    getOverlay(re: RegExp): CodeMirror.Overlay {
-        return {
-            token(stream: CodeMirror.StringStream) {
-                re.lastIndex = stream.pos;
-                const match = re.exec(stream.string);
-                if (match && match.index === stream.pos) {
-                    stream.pos += match[0].length || 1;
-                    return "searching";
-                } else if (match) {
-                    stream.pos = match.index;
-                } else {
-                    stream.skipToEnd();
-                }
-            },
-        };
+        this.reset();
     }
 
     searchPrev(val: string): boolean {
@@ -147,10 +132,9 @@ class History extends Log {
             if (re.test(this.history[this.index])) {
                 this.lastResult = this.index;
                 this.sync();
-                this.overlay != null &&
-                    this.prompt.code_mirror.removeOverlay(this.overlay, true);
-                this.overlay = this.getOverlay(re);
-                this.prompt.code_mirror.addOverlay(this.overlay);
+                this.overlay != null && this.prompt.removeSearchHighlight();
+                this.overlay = re;
+                this.prompt.addSearchHighlight(re);
                 return true;
             }
         }
@@ -170,8 +154,9 @@ class History extends Log {
             this.index = this.originalIndex;
         }
         this.originalIndex = null;
-        this.overlay != null &&
-            this.prompt.code_mirror.removeOverlay(this.overlay, true);
+        if (this.overlay != null) {
+            this.prompt.removeSearchHighlight();
+        }
         this.overlay = null;
         return this.sync();
     }

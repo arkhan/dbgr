@@ -16,28 +16,28 @@ def read_requirements(path: str) -> List[str]:
     requires = []
     with open(file_path) as f:
         requires = f.read().split("\n")
-    # requires += [f"wdb=={__version__}"]
+    # requires += [f"dbgr=={__version__}"]
     if sys.platform == "linux":
         requires += ["pyinotify"]
     return requires
 
 
 options = dict(
-    name="wdb.server.aiohttp",
+    name="dbgr-server",
     version=__version__,
     description="An improbable web debugger through WebSockets (server)",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="Shepilov Vladislav",
     author_email="shepilov.v@protonmail.com",
-    url="https://github.com/shepilov-vladislav/wdb_server_aiohttp",
+    url="https://github.com/CHANGEME/dbgr",
     license="GPLv3",
     platforms="Any",
-    scripts=["wdb.server.py"],
+    scripts=["dbgr.server.py"],
     packages=find_packages(),
     install_requires=read_requirements("requirements/production.txt"),
     package_data={
-        "wdb_server": [
+        "dbgr_server": [
             "static/*",
             "templates/*.html",
             "requirements/*",

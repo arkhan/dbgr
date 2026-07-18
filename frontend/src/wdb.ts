@@ -10,9 +10,29 @@ import { Source } from "./_source";
 import { Interpreter } from "./_interpreter";
 import { Prompt } from "./_prompt";
 import { Switch } from "./_switch";
-import { Watchers } from "./_watchers";
+import { Variables } from "./_variables";
 import { help } from "./_help";
-import { CodeMirror } from "./_codemirror";
+import { highlightTree, classHighlighter, python } from "./_codemirror";
+
+function runMode(text: string, _mode: string, el: HTMLElement): void {
+    const lang = python();
+    const tree = lang.language.parser.parse(text);
+    el.textContent = "";
+    let pos = 0;
+    highlightTree(tree, classHighlighter, (from, to, classes) => {
+        if (from > pos) {
+            el.appendChild(document.createTextNode(text.slice(pos, from)));
+        }
+        const span = document.createElement("span");
+        span.className = classes;
+        span.appendChild(document.createTextNode(text.slice(from, to)));
+        el.appendChild(span);
+        pos = to;
+    });
+    if (pos < text.length) {
+        el.appendChild(document.createTextNode(text.slice(pos)));
+    }
+}
 import "./scss/wdb.scss";
 
 export class Wdb extends Log {
@@ -28,16 +48,11 @@ export class Wdb extends Log {
     public interpreter: any;
     public prompt: any;
     public switch: any;
-    public watchers: any;
+    public variables: any;
     public $patience: any;
     public nodeType: any;
     public nodeValue: any;
     public parentElement: any;
-    public __version__: string;
-
-    static initClass() {
-        this.prototype.__version__ = "1.1.0-dev1";
-    }
 
     constructor() {
         super();
@@ -53,7 +68,7 @@ export class Wdb extends Log {
         this.interpreter = new Interpreter(this);
         this.prompt = new Prompt(this);
         this.switch = new Switch(this);
-        this.watchers = new Watchers(this);
+        this.variables = new Variables(this);
 
         this.$patience = $(".patience");
         // Prevent locking of monothread
@@ -86,16 +101,6 @@ export class Wdb extends Log {
     }
 
     init(data: any) {
-        if (data.version !== this.constructor.prototype.__version__) {
-            this.print({
-                for: "Client Server version mismatch !",
-                result: `Server is ${
-                    this.constructor.prototype.__version__
-                } and \
-Client is ${data.version || "<= 2.0"}`,
-            });
-        }
-
         this.cwd = data.cwd;
         const brks = data.breaks;
         return (() => {
@@ -208,7 +213,7 @@ Client is ${data.version || "<= 2.0"}`,
                         $code.attr("title", title);
                     }
                     return setTimeout(() => {
-                        CodeMirror.runMode($code.text(), mode, $code.get(0));
+                        runMode($code.text(), mode, $code.get(0));
                         $code.removeClass("waiting_for_hl");
                         return this.ellipsize($code);
                     }, 50);
@@ -222,7 +227,7 @@ Client is ${data.version || "<= 2.0"}`,
                 $code.attr("title", title);
             }
             parent.append($code);
-            CodeMirror.runMode(src, mode, $code.get(0));
+            runMode(src, mode, $code.get(0));
             this.ellipsize($code);
         }
 
@@ -666,7 +671,12 @@ mdl-shadow--2dp object`,
     }
 
     watched(data: any) {
-        return this.watchers.updateAll(data);
+        this.variables.updateAll(data);
+        return this.chilling();
+    }
+
+    expanded(data: any) {
+        return this.variables.receiveExpand(data);
     }
     // No @done() here
 
@@ -912,7 +922,6 @@ mdl-shadow--2dp object`,
         return this.ws.ws.close();
     }
 }
-Wdb.initClass();
 
 declare global {
     interface Window {

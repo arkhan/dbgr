@@ -1,0 +1,73 @@
+// Flat dark chrome for the debug session view (pudb parity), overriding
+// Material Design Lite's default light theme/blue header on this page only.
+// Matches the Monokai palette used by the source editor.
+$pudb-bg: #272822;
+$pudb-bg-alt: #1e1f1c;
+$pudb-fg: #f8f8f2;
+$pudb-header-bg: #1e1f1c;
+$pudb-muted: #75715e;
+$pudb-border: #49483e;
+
+body {
+    background: $pudb-bg;
+}
+
+main.mdl-layout__content {
+    background: $pudb-bg !important;
+    color: $pudb-fg;
+}
+
+.mdl-layout__header {
+    background: $pudb-header-bg !important;
+    box-shadow: none !important;
+}
+
+.mdl-layout__drawer {
+    background: $pudb-bg-alt !important;
+    color: $pudb-fg;
+    border-right: 1px solid $pudb-border;
+
+    .mdl-layout-title {
+        color: $pudb-fg;
+    }
+
+    // MDL bakes explicit colors into .mdl-list__item and its children
+    // (title/body text) for its light theme; the parent `color` above
+    // doesn't cascade over those, so force it on every descendant.
+    * {
+        color: $pudb-fg !important;
+    }
+
+    .trace-line {
+        &:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        &.real-selected {
+            background: rgba(255, 255, 255, 0.08) !important;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.12) !important;
+            }
+        }
+
+        &.selected {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+    }
+}
+
+.interpreter {
+    background: $pudb-bg;
+    color: $pudb-fg;
+    border-top: 1px solid $pudb-border;
+
+    .terminal {
+        background: $pudb-bg;
+        color: $pudb-fg;
+    }
+}
+footer.mdl-mini-footer {
+    background: $pudb-bg-alt !important;
+    color: $pudb-muted;
+}

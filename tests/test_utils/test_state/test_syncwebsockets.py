@@ -4,7 +4,7 @@
 import pytest
 
 # Firstparty:
-from wdb_server.utils.state import SyncWebSockets
+from dbgr_server.utils.state import SyncWebSockets
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def syncwebsockets():
 
 
 async def test_add(mocker, dummy_websocket, syncwebsockets):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
 
     assert "dummy_syncwebsocket" not in syncwebsockets._sockets
     await syncwebsockets.add("dummy_syncwebsocket", dummy_websocket)

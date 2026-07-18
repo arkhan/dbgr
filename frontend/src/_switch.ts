@@ -9,6 +9,7 @@ class Switch extends Log {
     public $command: JQuery;
     public $source: JQuery;
     public $interpreter: JQuery;
+    public $variables: JQuery;
 
     constructor(wdb: Wdb) {
         super();
@@ -22,6 +23,7 @@ class Switch extends Log {
         );
         this.$source = $(".source");
         this.$interpreter = $(".interpreter");
+        this.$variables = $(".variables-panel");
     }
 
     switch($switch: JQuery) {
@@ -42,6 +44,12 @@ class Switch extends Log {
                 return this.open_term();
             } else if ($switch.is(".on")) {
                 return this.close_term();
+            }
+        } else if ($switch.is(".variables")) {
+            if ($switch.is(".off")) {
+                return this.open_variables();
+            } else if ($switch.is(".on")) {
+                return this.close_variables();
             }
         }
     }
@@ -92,6 +100,24 @@ class Switch extends Log {
             .addClass("mdl-button--accent");
         this.$interpreter.addClass("hidden");
         return this.wdb.source.size();
+    }
+
+    open_variables() {
+        this.$switches
+            .filter(".variables")
+            .removeClass("off")
+            .addClass("on")
+            .removeClass("mdl-button--accent");
+        return this.$variables.removeClass("hidden");
+    }
+
+    close_variables() {
+        this.$switches
+            .filter(".variables")
+            .removeClass("on")
+            .addClass("off")
+            .addClass("mdl-button--accent");
+        return this.$variables.addClass("hidden");
     }
 
     command($command: JQuery) {

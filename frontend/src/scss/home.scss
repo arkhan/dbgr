@@ -1,3 +1,6 @@
+@import "typography";
+@import "pudb-theme";
+
 .table-responsive {
     min-height: 0.01%;
     overflow-x: auto;
@@ -75,16 +78,41 @@
 }
 
 .page-content {
-    table,
-    form,
-    aside {
-        margin: auto;
+    padding: 1.5em;
+
+    table.mdl-data-table {
+        width: 100%;
+        background: $pudb-bg-alt !important;
+        border-collapse: collapse;
+        box-shadow: none !important;
+
+        th {
+            text-align: left !important;
+            color: $pudb-muted !important;
+            border-bottom: 1px solid $pudb-border !important;
+            padding: 0.75em 1em;
+        }
+
+        td {
+            color: $pudb-fg !important;
+            border-bottom: 1px solid $pudb-border !important;
+            padding: 0.6em 1em;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        a {
+            color: #66d9ef !important;
+        }
     }
 
     form,
     aside {
         /* Oh yeah! */
         width: fit-content;
+        margin: auto;
     }
 }
 

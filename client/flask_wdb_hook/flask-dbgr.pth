@@ -1,0 +1,1 @@
+import os; exec("try:\n  if 'FLASK_DBGR' in os.environ:import dbgr.ext;dbgr.ext.patch_werkzeug()\nexcept:print('An error occured while automatically hooking dbgr into flask.');")

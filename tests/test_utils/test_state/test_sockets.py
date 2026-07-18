@@ -6,7 +6,7 @@ from mock import call
 
 # Firstparty:
 from conftest import DummySocket
-from wdb_server.utils.state import Sockets, SyncWebSockets, settings
+from dbgr_server.utils.state import Sockets, SyncWebSockets, settings
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def sockets():
 
 
 async def test_add(mocker, dummy_socket, sockets):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
 
     assert "dummy_socket" not in sockets._sockets
     await sockets.add("dummy_socket", dummy_socket)
@@ -51,7 +51,7 @@ def test_get_filename(sockets):
 
 
 async def test_set_filename(mocker, sockets):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
     assert "dummy_socket" not in sockets._filenames
 
     assert settings.show_filename

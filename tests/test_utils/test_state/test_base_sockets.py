@@ -9,7 +9,7 @@ from mock import call
 
 # Firstparty:
 from conftest import DummySocket
-from wdb_server.utils.state import BaseSockets, SyncWebSockets
+from dbgr_server.utils.state import BaseSockets, SyncWebSockets
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def base_sockets():
 
 
 async def test_send(mocker, dummy_socket, base_sockets):
-    mocker.patch("wdb_server.utils.state.BaseSockets._send")
+    mocker.patch("dbgr_server.utils.state.BaseSockets._send")
     data = "data"
     message = "message"
     base_sockets._sockets = {"dummy_socket": dummy_socket}
@@ -37,8 +37,8 @@ async def test_send(mocker, dummy_socket, base_sockets):
 
 
 async def test_add(mocker, dummy_socket, base_sockets):
-    mocker.patch("wdb_server.utils.state.BaseSockets.remove")
-    mocker.patch("wdb_server.utils.state.BaseSockets.close")
+    mocker.patch("dbgr_server.utils.state.BaseSockets.remove")
+    mocker.patch("dbgr_server.utils.state.BaseSockets.close")
 
     assert "dummy_socket" not in base_sockets._sockets
     await base_sockets.add("dummy_socket", dummy_socket)
@@ -53,7 +53,7 @@ async def test_add(mocker, dummy_socket, base_sockets):
 
 
 async def test_remove(mocker, dummy_socket, base_sockets):
-    mocker.patch("wdb_server.utils.state.SyncWebSockets.broadcast")
+    mocker.patch("dbgr_server.utils.state.SyncWebSockets.broadcast")
     assert "dummy_socket" not in base_sockets._sockets
     await base_sockets.remove("dummy_socket")
     SyncWebSockets.broadcast.assert_not_called()
@@ -97,9 +97,9 @@ def test_uuids(dummy_socket, base_sockets):
 
 
 async def test_broadcast(mocker, dummy_socket, base_sockets):
-    mocker.patch("wdb_server.utils.state.BaseSockets.send")
-    mocker.patch("wdb_server.utils.state.BaseSockets.close")
-    mocker.patch("wdb_server.utils.state.BaseSockets.remove")
+    mocker.patch("dbgr_server.utils.state.BaseSockets.send")
+    mocker.patch("dbgr_server.utils.state.BaseSockets.close")
+    mocker.patch("dbgr_server.utils.state.BaseSockets.remove")
 
     base_sockets._sockets = {"dummy_socket": dummy_socket}
 

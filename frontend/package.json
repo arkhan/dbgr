@@ -1,27 +1,26 @@
 {
-  "name": "wdb",
+  "name": "dbgr",
   "version": "1.1.0-dev1",
   "description": "An improbable python web debugger through WebSockets",
   "repository": {
     "type": "git",
-    "url": "git://github.com/shepilov-vladislav/wdb_server_aiohttp.git"
+    "url": "git://github.com/CHANGEME/dbgr.git"
   },
   "scripts": {
-    "webpack-build-prod": "./node_modules/webpack/bin/webpack.js",
-    "webpack-build-dev": "./node_modules/webpack/bin/webpack.js --watch --mode development"
+    "webpack-build-prod": "NODE_OPTIONS=--openssl-legacy-provider ./node_modules/webpack/bin/webpack.js",
+    "webpack-build-dev": "NODE_OPTIONS=--openssl-legacy-provider ./node_modules/webpack/bin/webpack.js --watch --mode development"
   },
   "private": true,
   "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/shepilov-vladislav/wdb_server_aiohttp/issues"
+    "url": "https://github.com/CHANGEME/dbgr/issues"
   },
-  "homepage": "https://github.com/shepilov-vladislav/wdb_server_aiohttp",
+  "homepage": "https://github.com/CHANGEME/dbgr",
   "devDependencies": {
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.6.0",
-    "file-loader": "^6.2.0",
     "mini-css-extract-plugin": "^2.5.3",
     "postcss-loader": "^6.2.1",
     "prettier": "2.5.1",
@@ -33,10 +32,16 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
-    "@types/codemirror": "^5.60.5",
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/search": "^6.7.0",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.1",
+    "@lezer/highlight": "^1.2.3",
     "@types/jquery": "^3.5.13",
     "@types/material-design-lite": "^1.1.17",
-    "codemirror": "^5.65.2",
     "dialog-polyfill": "^0.5.6",
     "jquery": "^3.6.0",
     "material-design-icons": "^3.0.1",

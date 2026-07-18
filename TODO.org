@@ -1,0 +1,77 @@
+#+TITLE: WDB Server — TODO
+#+STARTUP: overview
+
+* Migrations
+** DONE [#A] Migrar aiohttp → FastAPI
+   :PROPERTIES:
+   :EFFORT:   2-3d
+   :END:
+   Server fully on FastAPI/Starlette/uvicorn: ~wdb_server/app.py~ (lifespan,
+   Jinja2Templates, StaticFiles, httpx PyPI check), ~routes.py~
+   (~APIRouter~), ~views.py~ (function handlers + WS endpoints),
+   ~__main__.py~ (uvicorn.run). ~tests/~ passes against the FastAPI app
+   (~httpx.AsyncClient~ / ~TestClient~ WS fixtures).
+
+** DONE [#B] Migrar CodeMirror 5 → CodeMirror 6
+   :PROPERTIES:
+   :EFFORT:   3-4d
+   :END:
+   ~frontend/package.json~ on ~@codemirror/*@^6~ + ~@lezer/highlight~.
+   ~_codemirror.ts~ re-exports CM6 API. ~_source.ts~/~_prompt.ts~/~_history.ts~
+   use ~EditorView~/~StateField~/~StateEffect~/~Compartment~/~gutter~.
+   ~wdb.ts~ implements ~runMode~ via ~highlightTree~ + ~lang-python~ parser.
+   SCSS selectors renamed to ~.cm-*~. Webpack build (ts-loader + sass) is
+   green.
+
+* Features
+** DONE [#C] Panel Variables + Watches al estilo PyCharm
+   :PROPERTIES:
+   :EFFORT:   5-8d
+   :END:
+   Right-side lazy variable tree replacing the old horizontal ~.watchers~
+   strip. Locals + globals auto-shown (pudb-style), explicit watch
+   expressions in a separate section, lazy expand for
+   dict/list/tuple/set/objects, inline edit on double-click.
+
+*** DONE ~client/client/wdb/ui.py~ — protocol
+    - ~_var_entry(val)~: builds ~{val, type, expandable, len}~.
+      Expandable containers/objects get a cheap ~safe_repr~ preview
+      (truncated at ~MAX_PREVIEW~ chars); leaves keep the existing rich
+      ~safe_better_repr~ (inspect links included).
+    - ~update_watchers()~: locals + globals auto-included (pudb-style,
+      pre-existing), explicit ~db.watchers[file]~ entries tagged
+      ~watch: true~ so the frontend can split "Locals/Globals" vs
+      "Watches".
+    - ~do_expand(data)~: ~{"path": expr}~ → evaluates, returns children
+      (dict items / list·tuple indices / set via ~list()~ / object
+      ~__dict__~ or ~__slots__~) each with its own re-evaluable ~path~,
+      capped at ~MAX_CHILDREN~.
+    - ~do_setvar(data)~: ~{"expr": path, "value": expr}~ →
+      ~exec("expr = (value)", globals, locals)~, refreshes via
+      ~update_watchers()~; failures reported through ~Echo~ instead of
+      crashing the session.
+    - Covered by ~client/test/test_variables.py~ (auto-locals shape,
+      Expand on list/dict/object, SetVar on top-level + nested path,
+      SetVar error path).
+
+*** DONE ~frontend/src/_variables.ts~ — tree component
+    Replaces ~_watchers.ts~ (removed, along with ~_watchers.scss~).
+    Plain DOM/jQuery rows (no ~<table>~), depth via ~padding-left~,
+    ▶/▼ toggle triggers ~Expand~ lazily and caches children by path,
+    "Locals/Globals" vs "Watches" sections, double-click a value to
+    inline-edit → ~SetVar~. Expanded/edited state survives ~updateAll~
+    refresh by matching on ~path~.
+
+*** DONE ~wdb.ts~ — wiring
+    ~this.variables = new Variables(this)~; ~watched(data)~ delegates to
+    ~variables.updateAll~; new ~expanded(data)~ delegates to
+    ~variables.receiveExpand~. ~SetVar~ success rides the existing
+    ~Watched~ message (no separate handler needed); failures use the
+    existing ~echo()~ handler.
+
+*** DONE ~wdb.html~ + SCSS — layout
+    ~.variables-panel~ lives inside ~.interpreter~ (flex row: terminal +
+    300px sidebar) rather than a page-wide 3-column grid — keeps the
+    existing top/bottom source/interpreter split untouched. New
+    ~switch-variables~ header button (~_switch.ts~ ~open/close_variables~)
+    toggles it; hidden under 900px via media query.

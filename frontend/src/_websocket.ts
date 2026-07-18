@@ -8,7 +8,6 @@ class Websocket extends Log {
     constructor(wdb: any, uuid: string) {
         super();
         this.wdb = wdb;
-        super();
         // Open a websocket in case of request break
         const proto = document.location.protocol === "https:" ? "wss:" : "ws:";
         this.url = `${proto}//${document.location.host}/websocket/${uuid}`;

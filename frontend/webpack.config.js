@@ -26,7 +26,7 @@ module.exports = {
             "./src/_traceback.ts",
             "./src/_interpreter.ts",
             "./src/_prompt.ts",
-            "./src/_watchers.ts",
+            "./src/_variables.ts",
             "./src/_switch.ts",
             "./src/_help.ts",
             "./src/wdb.ts",
@@ -75,8 +75,8 @@ module.exports = {
                 exclude: /\.module\.css$/,
             },
             {
-                test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|svg|woff2)$/,
-                use: "file-loader",
+                test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|woff2)$/,
+                type: "asset/resource",
             },
         ],
     },
@@ -104,10 +104,10 @@ module.exports = {
                     from: "./src/assets/images/favicon.ico",
                     to: path.resolve(server_static_image_path, "favicon.ico"),
                 },
-                // mdl css themes
+                // single mdl theme (indigo-red — see wdb_server/constants.py THEME)
                 {
                     from:
-                        "./node_modules/material-design-lite/dist/material.*-*.min.css",
+                        "./node_modules/material-design-lite/dist/material.indigo-red.min.css",
                     to: path.resolve(server_static_mdl_path, "[name].css"),
                 },
             ],
